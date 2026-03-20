@@ -19,7 +19,12 @@ class Settings(BaseSettings):
     
     # App
     DEBUG: bool = False
-    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+    CORS_ORIGINS: list[str] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "muse://app",  # Mobile app deep link
+        "*",  # Allow all for personal use (can restrict later)
+    ]
     
     model_config = SettingsConfigDict(
         env_file=".env",

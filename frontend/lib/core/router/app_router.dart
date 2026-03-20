@@ -8,6 +8,7 @@ import '../../presentation/screens/scenario_list/scenario_list_screen.dart';
 import '../../presentation/screens/scenario_edit/scenario_edit_screen.dart';
 import '../../presentation/screens/group_create/group_create_screen.dart';
 import '../../presentation/screens/group_chat/group_chat_screen.dart';
+import '../../presentation/screens/settings/settings_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/profile-selection',
@@ -67,6 +68,10 @@ final GoRouter appRouter = GoRouter(
         final conversationId = state.pathParameters['conversationId']!;
         return GroupChatScreen(conversationId: conversationId);
       },
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
     ),
   ],
 );

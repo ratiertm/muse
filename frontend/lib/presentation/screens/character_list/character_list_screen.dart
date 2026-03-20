@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/providers/character_provider.dart';
+import '../../../core/utils/dialog_utils.dart';
 import '../../widgets/character_card.dart';
+import '../../widgets/loading_shimmer.dart';
+import '../../widgets/empty_state.dart';
 
 class CharacterListScreen extends ConsumerWidget {
   const CharacterListScreen({super.key});
@@ -82,7 +85,7 @@ class CharacterListScreen extends ConsumerWidget {
               title: const Text('설정'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Settings screen
+                context.push('/settings');
               },
             ),
           ],
@@ -91,33 +94,12 @@ class CharacterListScreen extends ConsumerWidget {
       body: charactersAsync.when(
         data: (characters) {
           if (characters.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.person_add_outlined,
-                    size: 64,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '캐릭터가 없습니다',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '+ 버튼을 눌러 캐릭터를 만들어보세요',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ],
-              ),
+            return EmptyState(
+              icon: Icons.person_add_outlined,
+              title: '캐릭터가 없습니다',
+              message: '+ 버튼을 눌러 새로운 캐릭터를 만들어보세요!',
+              actionLabel: '캐릭터 만들기',
+              onAction: () => context.push('/character/create'),
             );
           }
 
@@ -146,21 +128,23 @@ class CharacterListScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('오류: $error'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => ref.invalidate(characterListProvider),
-                child: const Text('다시 시도'),
-              ),
-            ],
+        loading: () => GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.75,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
           ),
+          itemCount: 6, // Show 6 shimmer placeholders
+          itemBuilder: (context, index) => const CharacterCardShimmer(),
+        ),
+        error: (error, stack) => EmptyState(
+          icon: Icons.error_outline,
+          title: '오류가 발생했습니다',
+          message: error.toString(),
+          actionLabel: '다시 시도',
+          onAction: () => ref.invalidate(characterListProvider),
         ),
       ),
       floatingActionButton: FloatingActionButton(

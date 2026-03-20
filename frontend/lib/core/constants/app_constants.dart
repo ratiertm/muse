@@ -1,8 +1,26 @@
 class AppConstants {
-  // API Configuration
-  static const String baseUrl = 'http://10.0.2.2:8000'; // Android emulator localhost
-  // For real device: use actual server IP
-  // static const String baseUrl = 'http://192.168.1.xxx:8000';
+  // API Configuration - Environment-based
+  static String get baseUrl {
+    // Build with: flutter build apk --dart-define=ENV=prod
+    const env = String.fromEnvironment('ENV', defaultValue: 'dev');
+    const customUrl = String.fromEnvironment('API_URL', defaultValue: '');
+    
+    if (customUrl.isNotEmpty) {
+      return customUrl;
+    }
+    
+    switch (env) {
+      case 'prod':
+        // Production server (update with your Oracle Cloud IP or domain)
+        return 'http://YOUR_SERVER_IP:8000';
+      case 'staging':
+        // Staging server
+        return 'http://YOUR_STAGING_IP:8000';
+      default:
+        // Development (Android emulator)
+        return 'http://10.0.2.2:8000';
+    }
+  }
   
   static const int apiTimeoutSeconds = 30;
   
