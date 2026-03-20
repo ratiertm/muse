@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "charbot-backend"
+version = "0.1.0"
+description = "Character chatbot backend with FastAPI"
+authors = ["Muse Team"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.0"
+uvicorn = {extras = ["standard"], version = "^0.32.0"}
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.36"}
+asyncpg = "^0.30.0"
+alembic = "^1.14.0"
+pydantic-settings = "^2.6.1"
+sse-starlette = "^2.2.1"
+litellm = "^1.59.7"
+python-multipart = "^0.0.20"
+bcrypt = "^4.2.1"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+aiosqlite = "^0.22.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+pytest-asyncio = "^0.24.0"
+httpx = "^0.28.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
