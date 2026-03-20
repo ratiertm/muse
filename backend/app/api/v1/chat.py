@@ -1,20 +1,28 @@
 """Chat streaming endpoints"""
+import asyncio
+import logging
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.dependencies import get_db
 from app.schemas.chat import ChatRequest
 from app.services.character_service import CharacterService
 from app.services.chat_service import ChatService
+from app.services.scenario_service import ScenarioService
 from app.core.llm_client import llm_client
 from app.core.prompt_builder import PromptBuilder
 from app.core.context_manager import ContextManager
+from app.core.god_agent import GodAgent
 from app.core.auth import get_current_user
 from app.models.user import User
 from app.models.message import MessageRole
+from app.models.scenario import Scenario
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -100,6 +108,7 @@ async def test_stream_chat(
 @router.post("")
 async def stream_chat(
     request: ChatRequest,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -111,10 +120,12 @@ async def stream_chat(
     - Saves both user and assistant messages
     - Applies sliding window context management
     - Streams response via SSE
+    - Uses God Agent flow when scenario_id is present
     
     Args:
         character_id: UUID of the character to chat with
         conversation_id: Existing conversation ID (optional, creates new if not provided)
+        scenario_id: Scenario ID for God Agent orchestration (only when creating new conversation)
         message: User message text
         model: Override model preference (optional)
     
@@ -152,11 +163,12 @@ async def stream_chat(
                 detail="Conversation does not belong to this character"
             )
     else:
-        # Create new conversation
+        # Create new conversation with optional scenario_id
         conversation = await ChatService.create_conversation(
             db=db,
             user_id=current_user.id,
             character_id=request.character_id,
+            scenario_id=request.scenario_id,
         )
         is_new_conversation = True
     
@@ -184,18 +196,67 @@ async def stream_chat(
         limit=30,  # Get last 30 messages for context
     )
     
-    # Build context with sliding window
-    # Filter out the user message we just saved (it'll be added by PromptBuilder)
+    # Filter out the user message we just saved
     history_for_context = [
         msg for msg in history_messages
         if msg.id != user_message.id
     ]
     
-    system_prompt = PromptBuilder.build_system_prompt(
-        character=character,
-        user_name="User",
-    )
+    # Check if this conversation uses God Agent (has scenario_id)
+    scenario = None
+    system_prompt = None
     
+    if conversation.scenario_id:
+        # === GOD AGENT FLOW ===
+        logger.info(f"Using God Agent flow for conversation {conversation.id} with scenario {conversation.scenario_id}")
+        
+        # Load scenario
+        scenario = await ScenarioService.get_scenario(db, conversation.scenario_id)
+        if not scenario:
+            raise HTTPException(status_code=404, detail="Scenario not found")
+        
+        # Initialize God Agent
+        god_agent = GodAgent(llm_client, model="gpt-4o-mini")
+        
+        # Convert history to dict format for God Agent
+        conversation_history_dicts = [
+            {"role": msg.role.value, "content": msg.content}
+            for msg in history_for_context
+        ]
+        
+        # Generate briefing
+        briefing = await god_agent.brief_character(
+            db=db,
+            character=character,
+            scenario=scenario,
+            user_message=request.message,
+            conversation_history=conversation_history_dicts,
+        )
+        
+        logger.info(f"Generated God Agent briefing for {character.name}")
+        
+        # Build system prompt WITH briefing
+        system_prompt = PromptBuilder.build_prompt_with_briefing(
+            character=character,
+            briefing=briefing,
+            user_name="User",
+        )
+        
+        # Use Claude Sonnet for character responses (God Agent uses GPT-4o-mini)
+        model = request.model or "claude-sonnet-4-20250514"
+    else:
+        # === STANDARD FLOW (Phase 1) ===
+        logger.info(f"Using standard flow for conversation {conversation.id}")
+        
+        system_prompt = PromptBuilder.build_system_prompt(
+            character=character,
+            user_name="User",
+        )
+        
+        # Determine model to use
+        model = request.model or character.model_preference or "gpt-4o-mini"
+    
+    # Build context messages
     context_messages = ContextManager.prepare_context_messages(
         system_prompt=system_prompt,
         conversation_history=history_for_context,
@@ -204,9 +265,6 @@ async def stream_chat(
     
     # Add current user message
     context_messages.append({"role": "user", "content": request.message})
-    
-    # Determine model to use
-    model = request.model or character.model_preference or "gpt-4o-mini"
     
     # Stream response
     async def event_generator():
@@ -232,12 +290,47 @@ async def stream_chat(
                 content=assistant_response,
             )
             
+            # If using God Agent, schedule observe_and_update as background task
+            if scenario:
+                logger.info(f"Scheduling God Agent observe_and_update for {character.name}")
+                
+                # Background task to update world state
+                async def update_god_state():
+                    """Background task to update God Agent state"""
+                    try:
+                        # Create new DB session for background task
+                        from app.dependencies import get_db
+                        async for bg_db in get_db():
+                            god_agent = GodAgent(llm_client, model="gpt-4o-mini")
+                            
+                            # Re-fetch scenario and character for background task
+                            bg_scenario = await ScenarioService.get_scenario(bg_db, conversation.scenario_id)
+                            bg_character = await CharacterService.get_character(bg_db, character.id)
+                            
+                            if bg_scenario and bg_character:
+                                await god_agent.observe_and_update(
+                                    db=bg_db,
+                                    character=bg_character,
+                                    scenario=bg_scenario,
+                                    user_message=request.message,
+                                    assistant_response=assistant_response,
+                                )
+                                logger.info(f"God Agent state updated for scenario {conversation.scenario_id}")
+                            
+                            break  # Exit after first (only) iteration
+                    except Exception as e:
+                        logger.error(f"Failed to update God Agent state: {e}")
+                
+                # Schedule as background task
+                background_tasks.add_task(update_god_state)
+            
             # Send end marker
             yield "data: [DONE]\n\n"
             
         except Exception as e:
             # Send error event
             error_msg = f"Error: {str(e)}"
+            logger.error(f"Chat stream error: {e}")
             yield f"data: {error_msg}\n\n"
             yield "data: [DONE]\n\n"
     

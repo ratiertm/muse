@@ -10,6 +10,7 @@ class ChatRequest(BaseModel):
     """Request schema for chat endpoint"""
     character_id: UUID = Field(..., description="Character to chat with")
     conversation_id: UUID | None = Field(None, description="Existing conversation ID (creates new if not provided)")
+    scenario_id: UUID | None = Field(None, description="Scenario ID for God Agent orchestration (only used when creating new conversation)")
     message: str = Field(..., min_length=1, description="User message")
     model: str | None = Field(None, description="Override model preference")
 

@@ -101,6 +101,49 @@ You are chatting with: {user_name}
         return "\n".join(sections)
     
     @staticmethod
+    def build_prompt_with_briefing(
+        character: Character,
+        briefing: str,
+        user_name: str = "User",
+        include_examples: bool = True,
+    ) -> str:
+        """
+        Build system prompt with God Agent briefing inserted
+        
+        The briefing is placed between character information and conversation context,
+        providing the character with current scenario state, knowledge, and emotions.
+        
+        Args:
+            character: Character model instance
+            briefing: God Agent briefing text
+            user_name: Name of the user (default: "User")
+            include_examples: Whether to include example dialogue
+        
+        Returns:
+            Complete system prompt with briefing
+        """
+        sections = [
+            PromptBuilder.SYSTEM_INSTRUCTION,
+            PromptBuilder.build_character_section(character),
+        ]
+        
+        if include_examples and character.example_dialogue:
+            sections.append(PromptBuilder.build_example_dialogue(character))
+        
+        # Insert God Agent briefing
+        sections.append("# Current Context Briefing")
+        sections.append("")
+        sections.append(briefing)
+        sections.append("")
+        
+        sections.append(PromptBuilder.build_user_persona(user_name))
+        
+        # Final instruction
+        sections.append(f"Now, respond as {character.name}. Stay in character!")
+        
+        return "\n".join(sections)
+    
+    @staticmethod
     def build_messages(
         character: Character,
         user_message: str,
