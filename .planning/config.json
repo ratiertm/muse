@@ -1,0 +1,6 @@
+{
+  "project": "Muse",
+  "mode": "yolo",
+  "depth": "standard",
+  "parallelization": true
+}
