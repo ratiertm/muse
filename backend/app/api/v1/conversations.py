@@ -1,0 +1,106 @@
+"""Conversation endpoints"""
+from uuid import UUID
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.dependencies import get_db
+from app.schemas.chat import ConversationResponse, ChatMessageResponse
+from app.schemas.common import PaginatedResponse
+from app.services.chat_service import ChatService
+from app.core.auth import get_current_user
+from app.models.user import User
+
+router = APIRouter()
+
+
+@router.get("", response_model=PaginatedResponse[ConversationResponse])
+async def list_conversations(
+    character_id: UUID | None = Query(default=None, description="Filter by character ID"),
+    page: int = Query(default=1, ge=1, description="Page number"),
+    per_page: int = Query(default=10, ge=1, le=100, description="Items per page"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get conversation list for current user
+    
+    - **character_id**: Filter by specific character (optional)
+    - **page**: Page number (1-indexed)
+    - **per_page**: Number of items per page (max 100)
+    """
+    offset = (page - 1) * per_page
+    
+    conversations, total = await ChatService.get_conversations(
+        db=db,
+        user_id=current_user.id,
+        character_id=character_id,
+        offset=offset,
+        limit=per_page,
+    )
+    
+    return PaginatedResponse.create(
+        items=conversations,
+        total=total,
+        page=page,
+        per_page=per_page,
+    )
+
+
+@router.get("/{conversation_id}", response_model=ConversationResponse)
+async def get_conversation(
+    conversation_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get a specific conversation by ID"""
+    conversation = await ChatService.get_conversation(
+        db=db,
+        conversation_id=conversation_id,
+        user_id=current_user.id,
+    )
+    
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    return conversation
+
+
+@router.get("/{conversation_id}/messages", response_model=PaginatedResponse[ChatMessageResponse])
+async def get_conversation_messages(
+    conversation_id: UUID,
+    page: int = Query(default=1, ge=1, description="Page number"),
+    per_page: int = Query(default=100, ge=1, le=500, description="Items per page"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get message history for a conversation
+    
+    - **page**: Page number (1-indexed)
+    - **per_page**: Number of messages per page (max 500)
+    """
+    # Verify conversation exists and belongs to user
+    conversation = await ChatService.get_conversation(
+        db=db,
+        conversation_id=conversation_id,
+        user_id=current_user.id,
+    )
+    
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    offset = (page - 1) * per_page
+    
+    messages, total = await ChatService.get_messages(
+        db=db,
+        conversation_id=conversation_id,
+        offset=offset,
+        limit=per_page,
+    )
+    
+    return PaginatedResponse.create(
+        items=messages,
+        total=total,
+        page=page,
+        per_page=per_page,
+    )

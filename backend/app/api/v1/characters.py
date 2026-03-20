@@ -7,22 +7,22 @@ from app.dependencies import get_db
 from app.schemas.character import CharacterCreate, CharacterUpdate, CharacterResponse
 from app.schemas.common import PaginationParams, PaginatedResponse
 from app.services.character_service import CharacterService
+from app.core.auth import get_current_user
+from app.models.user import User
 
 router = APIRouter()
-
-# Temporary: hardcoded user_id for testing (will be replaced with auth in Plan 05)
-TEMP_USER_ID = UUID("00000000-0000-0000-0000-000000000001")
 
 
 @router.post("", response_model=CharacterResponse, status_code=201)
 async def create_character(
     character_data: CharacterCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Create a new character"""
     character = await CharacterService.create_character(
         db=db,
-        user_id=TEMP_USER_ID,
+        user_id=current_user.id,
         character_data=character_data,
     )
     return character
@@ -35,6 +35,7 @@ async def list_characters(
     page: int = Query(default=1, ge=1, description="Page number"),
     per_page: int = Query(default=10, ge=1, le=100, description="Items per page"),
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get character list with filtering and pagination
@@ -48,7 +49,7 @@ async def list_characters(
     
     characters, total = await CharacterService.get_characters(
         db=db,
-        user_id=TEMP_USER_ID,
+        user_id=current_user.id,
         tags=tags,
         search=search,
         offset=pagination.offset,
@@ -67,12 +68,13 @@ async def list_characters(
 async def get_character(
     character_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get a specific character by ID"""
     character = await CharacterService.get_character(
         db=db,
         character_id=character_id,
-        user_id=TEMP_USER_ID,
+        user_id=current_user.id,
     )
     
     if not character:
@@ -86,12 +88,13 @@ async def update_character(
     character_id: UUID,
     character_data: CharacterUpdate,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Update a character"""
     character = await CharacterService.update_character(
         db=db,
         character_id=character_id,
-        user_id=TEMP_USER_ID,
+        user_id=current_user.id,
         character_data=character_data,
     )
     
@@ -105,12 +108,13 @@ async def update_character(
 async def delete_character(
     character_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Delete a character"""
     deleted = await CharacterService.delete_character(
         db=db,
         character_id=character_id,
-        user_id=TEMP_USER_ID,
+        user_id=current_user.id,
     )
     
     if not deleted:
