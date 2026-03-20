@@ -45,3 +45,9 @@ class CharacterResponse(CharacterBase):
     updated_at: datetime
     
     model_config = {"from_attributes": True}
+
+
+class CharacterAutoGenerateRequest(BaseModel):
+    """Schema for auto-generating character from source work"""
+    source_work: str = Field(..., min_length=1, max_length=200, description="원작 작품명 (예: 죠죠의 기묘한 모험)")
+    character_name: str = Field(..., min_length=1, max_length=200, description="캐릭터 이름 (예: 디오)")

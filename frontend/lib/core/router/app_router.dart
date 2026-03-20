@@ -4,6 +4,10 @@ import '../../presentation/screens/pin_auth/pin_auth_screen.dart';
 import '../../presentation/screens/character_list/character_list_screen.dart';
 import '../../presentation/screens/character_create/character_create_screen.dart';
 import '../../presentation/screens/chat/chat_screen.dart';
+import '../../presentation/screens/scenario_list/scenario_list_screen.dart';
+import '../../presentation/screens/scenario_edit/scenario_edit_screen.dart';
+import '../../presentation/screens/group_create/group_create_screen.dart';
+import '../../presentation/screens/group_chat/group_chat_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/profile-selection',
@@ -36,6 +40,32 @@ final GoRouter appRouter = GoRouter(
           characterId: characterId,
           conversationId: conversationId,
         );
+      },
+    ),
+    GoRoute(
+      path: '/scenarios',
+      builder: (context, state) => const ScenarioListScreen(),
+    ),
+    GoRoute(
+      path: '/scenario/create',
+      builder: (context, state) => const ScenarioEditScreen(),
+    ),
+    GoRoute(
+      path: '/scenario/edit/:scenarioId',
+      builder: (context, state) {
+        final scenarioId = state.pathParameters['scenarioId']!;
+        return ScenarioEditScreen(scenarioId: scenarioId);
+      },
+    ),
+    GoRoute(
+      path: '/group/create',
+      builder: (context, state) => const GroupCreateScreen(),
+    ),
+    GoRoute(
+      path: '/group-chat/:conversationId',
+      builder: (context, state) {
+        final conversationId = state.pathParameters['conversationId']!;
+        return GroupChatScreen(conversationId: conversationId);
       },
     ),
   ],

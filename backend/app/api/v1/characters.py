@@ -4,10 +4,17 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db
-from app.schemas.character import CharacterCreate, CharacterUpdate, CharacterResponse
+from app.schemas.character import (
+    CharacterCreate,
+    CharacterUpdate,
+    CharacterResponse,
+    CharacterAutoGenerateRequest,
+)
 from app.schemas.common import PaginationParams, PaginatedResponse
 from app.services.character_service import CharacterService
 from app.core.auth import get_current_user
+from app.core.auto_generator import auto_generator
+from app.core.avatar_generator import avatar_generator
 from app.models.user import User
 
 router = APIRouter()
@@ -119,3 +126,82 @@ async def delete_character(
     
     if not deleted:
         raise HTTPException(status_code=404, detail="Character not found")
+
+
+@router.post("/auto-generate", response_model=CharacterCreate)
+async def auto_generate_character(
+    request: CharacterAutoGenerateRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Auto-generate a character from source work and character name
+    
+    Uses LLM to generate personality, speech style, backstory, scenario,
+    first message, example dialogue, and tags based on the source work.
+    
+    Returns pre-filled CharacterCreate data for user to review/edit.
+    Does NOT save to database - user must save via POST /characters.
+    
+    Args:
+        source_work: 원작 작품명 (예: "죠죠의 기묘한 모험")
+        character_name: 캐릭터 이름 (예: "디오")
+    
+    Returns:
+        CharacterCreate: Pre-filled character data ready for editing/saving
+    """
+    try:
+        character = await auto_generator.generate_from_source(
+            source_work=request.source_work,
+            character_name=request.character_name,
+        )
+        return character
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"자동 생성 실패: {str(e)}")
+
+
+@router.post("/{character_id}/generate-avatar")
+async def generate_character_avatar(
+    character_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Generate an anime-style avatar for a character using DALL-E 3
+    
+    Creates an anime-style portrait based on the character's personality
+    and backstory. Updates the character's avatar_url in the database.
+    
+    Args:
+        character_id: Character ID
+    
+    Returns:
+        {"avatar_url": str} - URL of the generated avatar
+    """
+    # Get character
+    character = await CharacterService.get_character(
+        db=db,
+        character_id=character_id,
+        user_id=current_user.id,
+    )
+    
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    try:
+        # Generate avatar
+        avatar_url = await avatar_generator.generate_avatar(character)
+        
+        # Update character with new avatar URL
+        await CharacterService.update_character(
+            db=db,
+            character_id=character_id,
+            user_id=current_user.id,
+            character_data=CharacterUpdate(avatar_url=avatar_url),
+        )
+        
+        return {"avatar_url": avatar_url}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

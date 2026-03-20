@@ -52,4 +52,27 @@ class CharacterRepository {
   Future<void> deleteCharacter(String id) async {
     await apiClient.delete(ApiEndpoints.character(id));
   }
+
+  Future<CharacterCreate> autoGenerateCharacter({
+    required String sourceWork,
+    required String characterName,
+  }) async {
+    final response = await apiClient.post<Map<String, dynamic>>(
+      '${ApiEndpoints.characters}/auto-generate',
+      data: {
+        'source_work': sourceWork,
+        'character_name': characterName,
+      },
+    );
+
+    return CharacterCreate.fromJson(response.data!);
+  }
+
+  Future<String> generateAvatar(String characterId) async {
+    final response = await apiClient.post<Map<String, dynamic>>(
+      '${ApiEndpoints.character(characterId)}/generate-avatar',
+    );
+
+    return response.data!['avatar_url'] as String;
+  }
 }

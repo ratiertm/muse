@@ -6,10 +6,13 @@ class ApiEndpoints {
   static const String chat = '/api/v1/chat';
   static const String conversations = '/api/v1/conversations';
   static const String groupChat = '/api/v1/group-chat';
+  static const String scenarios = '/api/v1/scenarios';
   
   static String character(String id) => '$characters/$id';
   static String conversation(String id) => '$conversations/$id';
   static String conversationMessages(String id) => '$conversations/$id/messages';
   static String conversationsByCharacter(String characterId) => 
       '$conversations?character_id=$characterId';
+  static String scenario(String id) => '$scenarios/$id';
+  static String scenarioCharacters(String scenarioId) => '$scenarios/$scenarioId/characters';
 }

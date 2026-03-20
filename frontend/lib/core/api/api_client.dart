@@ -49,6 +49,13 @@ class ApiClient {
   
   Dio get dio => _dio;
   
+  String get baseUrl => AppConstants.baseUrl;
+  
+  Future<String?> get token async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.keyAccessToken);
+  }
+  
   Future<Response<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,

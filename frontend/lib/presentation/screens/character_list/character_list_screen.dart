@@ -14,24 +14,79 @@ class CharacterListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: () async {
-            await ref.read(authStateProvider.notifier).logout();
-            if (context.mounted) {
-              context.go('/profile-selection');
-            }
-          },
-        ),
         title: const Text('내 캐릭터'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {
-              // TODO: Settings screen
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await ref.read(authStateProvider.notifier).logout();
+              if (context.mounted) {
+                context.go('/profile-selection');
+              }
             },
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(Icons.chat, size: 48, color: Colors.white),
+                  SizedBox(height: 8),
+                  Text(
+                    'Muse',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('내 캐릭터'),
+              selected: true,
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.movie),
+              title: const Text('시나리오'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/scenarios');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.group),
+              title: const Text('그룹 채팅 만들기'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/group/create');
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('설정'),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Settings screen
+              },
+            ),
+          ],
+        ),
       ),
       body: charactersAsync.when(
         data: (characters) {
