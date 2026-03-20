@@ -19,6 +19,28 @@
 - 대화 기록 서버 저장
 - 멀티 프로필 (유저별 캐릭터/대화 분리)
 - 원작 기반 캐릭터 자동 생성 (작품명+캐릭터명 → AI가 설정 채움)
+- **God Agent 시스템** (핵심 차별점)
+
+## Architecture: God Agent
+Muse의 핵심 설계. 전지적 시점의 오케스트레이터가 세계관과 모든 캐릭터를 관장.
+
+### 역할
+- 세계 상태(시간축, 장소, 이벤트) 관리
+- 각 캐릭터가 "무엇을 알고 무엇을 모르는지" 판단
+- 대화 전 캐릭터에게 브리핑 (knowledge-aware prompting)
+- 대화 후 세계 상태 업데이트 (이벤트 추출, 지식 전파)
+- 그룹챗 턴 오케스트레이션
+
+### 3계층 지식 구조
+- World State: 시나리오 공통 상태 (시간, 장소, 공개 이벤트)
+- Knowledge Graph: 캐릭터별 "아는 것/모르는 것" 맵
+- Private State: 캐릭터 개인 감정, 비밀, 속마음
+
+### LLM 파이프라인 (1턴)
+1. 유저 메시지 수신
+2. God Agent (GPT-4o-mini) → 캐릭터 브리핑 생성
+3. Character Agent (Claude Sonnet) → 응답 생성
+4. God Agent (GPT-4o-mini) → 세계 상태 업데이트
 
 ## Tech Decisions
 - **앱:** Flutter (Android, 추후 iOS 확장 가능)
