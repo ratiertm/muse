@@ -3,10 +3,12 @@ from uuid import UUID
 from datetime import datetime
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models.conversation import Conversation
 from app.models.message import Message, MessageRole
 from app.models.character import Character
+from app.models.group_conversation_participant import GroupConversationParticipant
 
 
 class ChatService:
@@ -176,3 +178,132 @@ class ChatService:
         
         # Return in chronological order (oldest first)
         return list(reversed(messages))
+    
+    # ===== Group Chat Methods =====
+    
+    @staticmethod
+    async def create_group_conversation(
+        db: AsyncSession,
+        user_id: UUID,
+        scenario_id: UUID,
+        character_ids: list[UUID],
+        title: str,
+    ) -> Conversation:
+        """
+        Create a new group conversation with multiple characters
+        
+        Args:
+            db: Database session
+            user_id: User creating the conversation
+            scenario_id: Scenario for God Agent orchestration
+            character_ids: List of character UUIDs to include
+            title: Group chat title
+        
+        Returns:
+            Created conversation
+        """
+        # Create conversation with is_group=True and character_id=None
+        conversation = Conversation(
+            user_id=user_id,
+            character_id=None,  # Group chat has no single character
+            scenario_id=scenario_id,
+            is_group=True,
+            title=title,
+        )
+        db.add(conversation)
+        await db.flush()  # Get conversation ID
+        
+        # Add participants
+        for char_id in character_ids:
+            participant = GroupConversationParticipant(
+                conversation_id=conversation.id,
+                character_id=char_id,
+                turn_order=None,  # God Agent decides dynamically
+            )
+            db.add(participant)
+        
+        await db.commit()
+        
+        # Re-query to get fresh data with relationships
+        result = await db.execute(
+            select(Conversation)
+            .where(Conversation.id == conversation.id)
+            .options(selectinload(Conversation.participants))
+        )
+        return result.scalar_one()
+    
+    @staticmethod
+    async def get_group_participants(
+        db: AsyncSession,
+        conversation_id: UUID,
+    ) -> list[Character]:
+        """
+        Get all characters participating in a group conversation
+        
+        Args:
+            db: Database session
+            conversation_id: Group conversation ID
+        
+        Returns:
+            List of Character objects
+        """
+        query = (
+            select(Character)
+            .join(GroupConversationParticipant, GroupConversationParticipant.character_id == Character.id)
+            .where(GroupConversationParticipant.conversation_id == conversation_id)
+            .order_by(GroupConversationParticipant.created_at)
+        )
+        
+        result = await db.execute(query)
+        return list(result.scalars().all())
+    
+    @staticmethod
+    async def save_group_message(
+        db: AsyncSession,
+        conversation_id: UUID,
+        role: MessageRole,
+        content: str,
+        character_id: UUID | None = None,
+        token_count: int | None = None,
+    ) -> Message:
+        """
+        Save a message in a group conversation
+        
+        For group chats, character_id indicates which character spoke.
+        For user messages, character_id is None.
+        
+        Args:
+            db: Database session
+            conversation_id: Conversation ID
+            role: Message role (user or assistant)
+            content: Message content
+            character_id: Character who spoke (None for user)
+            token_count: Estimated token count
+        
+        Returns:
+            Saved message
+        """
+        message = Message(
+            conversation_id=conversation_id,
+            role=role,
+            content=content,
+            character_id=character_id,
+            token_count=token_count,
+        )
+        db.add(message)
+        
+        # Update conversation updated_at
+        result = await db.execute(
+            select(Conversation).where(Conversation.id == conversation_id)
+        )
+        conversation = result.scalar_one_or_none()
+        if conversation:
+            conversation.updated_at = datetime.utcnow()
+        
+        await db.commit()
+        
+        # Re-query to get fresh data
+        result = await db.execute(
+            select(Message).where(Message.id == message.id)
+        )
+        return result.scalar_one()

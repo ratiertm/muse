@@ -10,6 +10,8 @@ from app.core.god_prompts import (
     BRIEFING_TEMPLATE,
     UPDATE_SYSTEM_PROMPT,
     EVENT_EXTRACTION_TEMPLATE,
+    GROUP_TURN_DECISION_SYSTEM_PROMPT,
+    GROUP_TURN_DECISION_TEMPLATE,
 )
 from app.models.character import Character
 from app.models.scenario import Scenario
@@ -330,6 +332,268 @@ class GodAgent:
         if updates["inner_thoughts_update"]:
             await PrivateStateService.update_inner_thoughts(
                 db, character.id, scenario.id, updates["inner_thoughts_update"]
+            )
+        
+        # Commit all changes
+        await db.commit()
+    
+    # ===== Group Chat Methods =====
+    
+    async def decide_next_speakers(
+        self,
+        db: AsyncSession,
+        scenario: Scenario,
+        participants: list[Character],
+        user_message: str,
+        conversation_history: list[dict[str, str]] | None = None,
+    ) -> list[UUID]:
+        """
+        Decide which character(s) should respond in a group chat based on context and knowledge.
+        
+        This is the core of group chat orchestration - God Agent analyzes:
+        - Each character's knowledge state
+        - The user's message content
+        - Recent conversation context
+        - Natural conversation flow
+        
+        Characters will only be selected if they:
+        - Have relevant knowledge to respond
+        - Would naturally want to speak in this context
+        - Know about any secrets/facts mentioned in the message
+        
+        Args:
+            db: Database session
+            scenario: Current scenario
+            participants: List of characters in the group chat
+            user_message: The user's message
+            conversation_history: Recent conversation context
+        
+        Returns:
+            List of character UUIDs who should respond
+        """
+        # Build participants info with knowledge states
+        participants_info_parts = []
+        
+        for char in participants:
+            # Get character's knowledge
+            knowledge = await KnowledgeService.get_or_create_knowledge(
+                db, char.id, scenario.id
+            )
+            
+            # Get character's private state
+            private_state = await PrivateStateService.get_or_create_state(
+                db, char.id, scenario.id
+            )
+            
+            # Format character info
+            known_facts_str = ", ".join(knowledge.known_facts[:5]) if knowledge.known_facts else "None yet"
+            char_info = f"""- {char.name} (ID: {char.id})
+  Personality: {char.personality[:100] if char.personality else 'Not specified'}
+  Known facts: {known_facts_str}
+  Current thoughts: {private_state.inner_thoughts or 'None'}"""
+            
+            participants_info_parts.append(char_info)
+        
+        participants_info = "\n\n".join(participants_info_parts)
+        
+        # Format world state
+        world_state_text = self._format_world_state(scenario.world_state)
+        
+        # Format conversation context
+        conversation_context = ""
+        if conversation_history:
+            recent = conversation_history[-5:]  # Last 5 exchanges
+            conversation_context = "\n".join(
+                f"{msg['role']}: {msg['content']}" for msg in recent
+            )
+        else:
+            conversation_context = "(No previous messages)"
+        
+        # Build decision prompt
+        prompt = GROUP_TURN_DECISION_TEMPLATE.format(
+            world_state=world_state_text,
+            participants_info=participants_info,
+            conversation_context=conversation_context,
+            user_message=user_message,
+        )
+        
+        # Call LLM to decide speakers
+        messages = [
+            {"role": "system", "content": GROUP_TURN_DECISION_SYSTEM_PROMPT},
+            {"role": "user", "content": prompt},
+        ]
+        
+        try:
+            response = await self.llm_client.complete(
+                messages=messages,
+                model=self.model,
+                temperature=0.3,  # Low temperature for consistency
+                max_tokens=500,
+            )
+            
+            # Parse JSON response
+            decision = self._parse_json_response(response)
+            
+            # Extract character IDs
+            responding_ids = []
+            if "responding_characters" in decision:
+                for char_id_str in decision["responding_characters"]:
+                    try:
+                        responding_ids.append(UUID(char_id_str))
+                    except (ValueError, TypeError):
+                        logger.warning(f"Invalid character ID in response: {char_id_str}")
+            
+            reasoning = decision.get("reasoning", "No reasoning provided")
+            logger.info(f"God Agent decided speakers: {responding_ids}. Reasoning: {reasoning}")
+            
+            # Ensure at least one character responds (fallback to first participant)
+            if not responding_ids and participants:
+                logger.warning("God Agent returned no speakers, defaulting to first participant")
+                responding_ids = [participants[0].id]
+            
+            return responding_ids
+        
+        except Exception as e:
+            logger.error(f"Failed to decide next speakers: {e}")
+            # Fallback: return first participant
+            if participants:
+                return [participants[0].id]
+            return []
+    
+    async def observe_and_update_group(
+        self,
+        db: AsyncSession,
+        speaker_character: Character,
+        scenario: Scenario,
+        user_message: str,
+        assistant_response: str,
+        present_characters: list[Character],
+    ) -> dict:
+        """
+        Observe a group chat exchange and update knowledge states with isolation.
+        
+        Key difference from 1:1 chat:
+        - Information is shared with ALL characters present in the group
+        - Characters NOT in the group don't learn the information
+        - Speaker's inner_thoughts remain private (only they know)
+        
+        This ensures knowledge isolation between group and non-group characters.
+        
+        Args:
+            db: Database session
+            speaker_character: Character who spoke
+            scenario: Current scenario
+            user_message: User's message
+            assistant_response: Speaker's response
+            present_characters: All characters present in the group (including speaker)
+        
+        Returns:
+            Dict with extracted updates
+        """
+        # Format current world state
+        world_state_text = self._format_world_state(scenario.world_state)
+        
+        # Build extraction prompt
+        prompt = EVENT_EXTRACTION_TEMPLATE.format(
+            character_name=speaker_character.name,
+            world_state=world_state_text,
+            user_message=user_message,
+            assistant_response=assistant_response,
+        )
+        
+        # Call LLM to extract events and updates
+        messages = [
+            {"role": "system", "content": UPDATE_SYSTEM_PROMPT},
+            {"role": "user", "content": prompt},
+        ]
+        
+        try:
+            response = await self.llm_client.complete(
+                messages=messages,
+                model=self.model,
+                temperature=0.2,
+                max_tokens=800,
+            )
+            
+            # Parse JSON response
+            updates = self._parse_json_response(response)
+            
+            # Apply updates to database
+            await self._apply_group_updates(
+                db,
+                speaker_character,
+                scenario,
+                updates,
+                present_characters,
+            )
+            
+            logger.info(f"Applied group updates from {speaker_character.name}: {updates}")
+            return updates
+        
+        except Exception as e:
+            logger.error(f"Failed to extract/apply group updates: {e}")
+            return {
+                "new_events": [],
+                "new_known_facts": [],
+                "emotion_changes": {},
+                "new_secrets": [],
+                "inner_thoughts_update": "",
+            }
+    
+    async def _apply_group_updates(
+        self,
+        db: AsyncSession,
+        speaker_character: Character,
+        scenario: Scenario,
+        updates: dict,
+        present_characters: list[Character],
+    ) -> None:
+        """
+        Apply extracted updates to database with group chat knowledge isolation.
+        
+        Args:
+            db: Database session
+            speaker_character: Character who spoke
+            scenario: Current scenario
+            updates: Parsed updates dict
+            present_characters: All characters present (including speaker)
+        """
+        # Update world state (new events - global to scenario)
+        if updates["new_events"]:
+            current_state = scenario.world_state or {}
+            active_events = current_state.get("active_events", [])
+            
+            for event in updates["new_events"]:
+                if event not in active_events:
+                    active_events.append(event)
+            
+            current_state["active_events"] = active_events
+            scenario.world_state = current_state
+            await db.flush()
+        
+        # Update knowledge for ALL present characters (knowledge sharing)
+        for fact in updates["new_known_facts"]:
+            for char in present_characters:
+                await KnowledgeService.add_known_fact(
+                    db, char.id, scenario.id, fact
+                )
+        
+        # Update speaker's emotional states (only speaker)
+        for target, sentiment in updates["emotion_changes"].items():
+            await PrivateStateService.update_feeling(
+                db, speaker_character.id, scenario.id, target, sentiment
+            )
+        
+        # Add new secrets (only speaker knows)
+        for secret in updates["new_secrets"]:
+            await PrivateStateService.add_secret(
+                db, speaker_character.id, scenario.id, secret
+            )
+        
+        # Update inner thoughts (only speaker)
+        if updates["inner_thoughts_update"]:
+            await PrivateStateService.update_inner_thoughts(
+                db, speaker_character.id, scenario.id, updates["inner_thoughts_update"]
             )
         
         # Commit all changes

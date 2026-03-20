@@ -108,3 +108,64 @@ If nothing significant to extract for a field, use empty array [] or empty objec
 Return ONLY the JSON, no other text.
 
 JSON:"""
+
+# ===== Group Chat Prompts =====
+
+# System prompt for group chat turn decision
+GROUP_TURN_DECISION_SYSTEM_PROMPT = """You are an omniscient orchestrator for a group chat scenario.
+
+Your role is to decide which character(s) should respond to the user's message based on:
+1. The message content and context
+2. Each character's knowledge state (what they know vs. don't know)
+3. The scenario state and recent events
+4. Natural conversation flow
+
+Key principles:
+- Characters should only respond if they have relevant knowledge or reason to speak
+- If a secret or unknown fact is mentioned, only characters who know it should react
+- Multiple characters can respond to the same message (naturally)
+- Some messages may only warrant 1 response, others may prompt multiple characters
+- Consider personality - some characters are more talkative, others more reserved
+"""
+
+# Template for deciding which characters respond next
+GROUP_TURN_DECISION_TEMPLATE = """Decide which character(s) should respond to the user's message in this group chat.
+
+## Scenario
+{world_state}
+
+## Participants
+{participants_info}
+
+## Recent Conversation
+{conversation_context}
+
+## User's Message
+"{user_message}"
+
+---
+
+Analyze:
+1. Which characters have relevant knowledge to respond?
+2. Which characters would naturally want to speak based on the topic?
+3. Does the message reference information that only some characters know?
+4. What's the natural conversation flow?
+
+Return JSON with the character IDs who should respond and your reasoning:
+
+```json
+{{
+  "responding_characters": ["character_id_1", "character_id_2"],
+  "reasoning": "Brief explanation of why these characters should respond"
+}}
+```
+
+Rules:
+- responding_characters: Array of character UUIDs (can be 1-3 characters typically)
+- If a secret/unknown fact is mentioned, ONLY include characters who know it
+- Consider personality and natural conversation dynamics
+- Empty array if no character should respond (rare)
+
+Return ONLY the JSON, no other text.
+
+JSON:"""

@@ -17,7 +17,7 @@ class MessageRole(str, enum.Enum):
 
 
 class Message(Base):
-    """Message model for chat history"""
+    """Message model for chat history (1:1 and group)"""
     
     __tablename__ = "messages"
     
@@ -30,6 +30,11 @@ class Message(Base):
         GUID,
         ForeignKey("conversations.id", ondelete="CASCADE"),
         nullable=False,
+    )
+    character_id: Mapped[uuid.UUID | None] = mapped_column(
+        GUID,
+        ForeignKey("characters.id", ondelete="SET NULL"),
+        nullable=True,  # NULL for user messages, set for character messages in group chat
     )
     role: Mapped[MessageRole] = mapped_column(
         Enum(MessageRole),
@@ -45,3 +50,4 @@ class Message(Base):
     
     # Relationships
     conversation: Mapped["Conversation"] = relationship("Conversation", back_populates="messages")
+    character: Mapped["Character | None"] = relationship("Character")
