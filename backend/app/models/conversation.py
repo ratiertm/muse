@@ -3,9 +3,9 @@ import uuid
 from datetime import datetime
 from sqlalchemy import String, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.database import Base
+from app.db.types import GUID
 
 
 class Conversation(Base):
@@ -14,22 +14,22 @@ class Conversation(Base):
     __tablename__ = "conversations"
     
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        GUID,
         primary_key=True,
         default=uuid.uuid4,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        GUID,
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
     character_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        GUID,
         ForeignKey("characters.id", ondelete="CASCADE"),
         nullable=False,
     )
     scenario_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
+        GUID,
         ForeignKey("scenarios.id", ondelete="SET NULL"),
         nullable=True,
     )

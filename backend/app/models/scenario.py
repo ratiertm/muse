@@ -3,9 +3,9 @@ import uuid
 from datetime import datetime
 from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.database import Base
+from app.db.types import GUID
 
 
 class Scenario(Base):
@@ -14,12 +14,12 @@ class Scenario(Base):
     __tablename__ = "scenarios"
     
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        GUID,
         primary_key=True,
         default=uuid.uuid4,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        GUID,
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )

@@ -4,9 +4,9 @@ import enum
 from datetime import datetime
 from sqlalchemy import String, Text, DateTime, ForeignKey, Integer, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.database import Base
+from app.db.types import GUID
 
 
 class MessageRole(str, enum.Enum):
@@ -22,12 +22,12 @@ class Message(Base):
     __tablename__ = "messages"
     
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        GUID,
         primary_key=True,
         default=uuid.uuid4,
     )
     conversation_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        GUID,
         ForeignKey("conversations.id", ondelete="CASCADE"),
         nullable=False,
     )
