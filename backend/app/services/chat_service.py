@@ -1,7 +1,7 @@
 """Chat service with conversation and message management"""
 from uuid import UUID
 from datetime import datetime
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -179,6 +179,73 @@ class ChatService:
         # Return in chronological order (oldest first)
         return list(reversed(messages))
     
+    # ===== Message Edit/Delete/Regenerate =====
+
+    @staticmethod
+    async def get_message(
+        db: AsyncSession,
+        message_id: UUID,
+        conversation_id: UUID,
+    ) -> Message | None:
+        """Get a single message by ID within a conversation"""
+        result = await db.execute(
+            select(Message).where(
+                Message.id == message_id,
+                Message.conversation_id == conversation_id,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    @staticmethod
+    async def update_message(
+        db: AsyncSession,
+        message_id: UUID,
+        content: str,
+    ) -> Message:
+        """Update message content"""
+        result = await db.execute(
+            select(Message).where(Message.id == message_id)
+        )
+        message = result.scalar_one()
+        message.content = content
+        await db.commit()
+        await db.refresh(message)
+        return message
+
+    @staticmethod
+    async def delete_message(
+        db: AsyncSession,
+        message_id: UUID,
+    ) -> None:
+        """Delete a message"""
+        await db.execute(
+            delete(Message).where(Message.id == message_id)
+        )
+        await db.commit()
+
+    @staticmethod
+    async def delete_last_assistant_message(
+        db: AsyncSession,
+        conversation_id: UUID,
+    ) -> Message | None:
+        """Delete the last assistant message and return it (for regeneration)"""
+        result = await db.execute(
+            select(Message)
+            .where(
+                Message.conversation_id == conversation_id,
+                Message.role == MessageRole.ASSISTANT,
+            )
+            .order_by(Message.created_at.desc())
+            .limit(1)
+        )
+        last_msg = result.scalar_one_or_none()
+        if last_msg:
+            await db.execute(
+                delete(Message).where(Message.id == last_msg.id)
+            )
+            await db.commit()
+        return last_msg
+
     # ===== Group Chat Methods =====
     
     @staticmethod

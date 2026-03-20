@@ -8,6 +8,7 @@ from app.models.character_private_state import CharacterPrivateState
 from app.models.conversation import Conversation
 from app.models.message import Message
 from app.models.group_conversation_participant import GroupConversationParticipant
+from app.models.user_persona import UserPersona
 
 __all__ = [
     "User",
@@ -19,4 +20,5 @@ __all__ = [
     "Conversation",
     "Message",
     "GroupConversationParticipant",
+    "UserPersona",
 ]

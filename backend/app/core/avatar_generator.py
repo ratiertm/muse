@@ -89,5 +89,13 @@ class AvatarGenerator:
         return prompt
 
 
-# Global instance
-avatar_generator = AvatarGenerator()
+# Lazy-initialized global instance
+_avatar_generator: AvatarGenerator | None = None
+
+
+def get_avatar_generator() -> AvatarGenerator:
+    """Get or create the avatar generator instance (lazy init)"""
+    global _avatar_generator
+    if _avatar_generator is None:
+        _avatar_generator = AvatarGenerator()
+    return _avatar_generator

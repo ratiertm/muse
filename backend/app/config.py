@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = ""
     
     # JWT
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    SECRET_KEY: str = ""
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
@@ -34,3 +34,14 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# Validate critical settings at startup
+if not settings.SECRET_KEY or settings.SECRET_KEY == "your-secret-key-change-in-production":
+    if not settings.DEBUG:
+        raise ValueError(
+            "SECRET_KEY must be set in production. "
+            "Generate one with: openssl rand -hex 32"
+        )
+    else:
+        import warnings
+        warnings.warn("SECRET_KEY is not set. Using insecure default for DEBUG mode.")

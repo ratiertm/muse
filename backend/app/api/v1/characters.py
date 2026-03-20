@@ -1,7 +1,10 @@
 """Character CRUD endpoints"""
+import logging
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 from app.dependencies import get_db
 from app.schemas.character import (
@@ -14,7 +17,7 @@ from app.schemas.common import PaginationParams, PaginatedResponse
 from app.services.character_service import CharacterService
 from app.core.auth import get_current_user
 from app.core.auto_generator import auto_generator
-from app.core.avatar_generator import avatar_generator
+from app.core.avatar_generator import get_avatar_generator
 from app.models.user import User
 
 router = APIRouter()
@@ -191,7 +194,7 @@ async def generate_character_avatar(
     
     try:
         # Generate avatar
-        avatar_url = await avatar_generator.generate_avatar(character)
+        avatar_url = await get_avatar_generator().generate_avatar(character)
         
         # Update character with new avatar URL
         await CharacterService.update_character(
@@ -204,4 +207,5 @@ async def generate_character_avatar(
         return {"avatar_url": avatar_url}
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Avatar generation failed: {e}")
+        raise HTTPException(status_code=500, detail="아바타 생성에 실패했습니다.")

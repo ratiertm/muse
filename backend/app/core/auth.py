@@ -128,8 +128,8 @@ async def get_current_user(
     Raises:
         HTTPException: If authentication fails
     """
-    # Dev shortcut: allow X-User-Id header to bypass authentication
-    if x_user_id:
+    # Dev shortcut: allow X-User-Id header ONLY in DEBUG mode
+    if x_user_id and settings.DEBUG:
         try:
             user_id = UUID(x_user_id)
             result = await db.execute(

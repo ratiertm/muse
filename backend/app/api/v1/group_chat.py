@@ -321,13 +321,12 @@ async def send_group_message(
                 logger.info(f"Completed response for {character.name}")
                 
             except Exception as e:
-                error_msg = f"Error generating response for {character.name}: {str(e)}"
-                logger.error(error_msg)
-                
+                logger.error(f"Error generating response for {character.name}: {e}")
+
                 error_event = GroupChatStreamEvent(
                     character_id=character.id,
                     character_name=character.name,
-                    chunk=f"\n\n[Error: {str(e)}]",
+                    chunk=f"\n\n[{character.name}의 응답 생성 중 오류가 발생했습니다]",
                     is_done=False,
                 )
                 yield f"data: {error_event.model_dump_json()}\n\n"

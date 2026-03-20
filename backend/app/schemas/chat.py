@@ -74,3 +74,16 @@ class GroupChatStreamEvent(BaseModel):
     character_name: str | None = None
     chunk: str | None = None
     is_done: bool = False
+
+
+# ===== Message Edit/Delete/Regenerate Schemas =====
+
+class MessageEditRequest(BaseModel):
+    """Request schema for editing a message"""
+    content: str = Field(..., min_length=1, description="New message content")
+
+
+class RegenerateRequest(BaseModel):
+    """Request schema for regenerating the last assistant message"""
+    conversation_id: UUID = Field(..., description="Conversation ID")
+    model: str | None = Field(None, description="Override model preference")
