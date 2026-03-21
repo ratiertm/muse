@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUSE - System Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #080B14;
+    color: #C8CCD4;
+    font-family: 'Inter', 'Noto Sans KR', sans-serif;
+    overflow-x: hidden;
+  }
+
+  .canvas {
+    position: relative;
+    width: 1200px;
+    margin: 0 auto;
+    padding: 40px 0 80px;
+    min-height: 100vh;
+  }
+
+  /* === GRID BACKGROUND === */
+  .canvas::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* === HEADER === */
+  .header {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    padding: 20px 0 40px;
+  }
+  .header .ref { font-family: 'JetBrains Mono'; font-size: 12px; color: #505868; }
+  .header .ref-line { display: flex; justify-content: space-between; padding: 0 40px; margin-bottom: 20px; }
+  .header hr { border: none; border-top: 1px solid #1A1F2E; margin: 10px 40px; }
+  .header h1 {
+    font-size: 72px; font-weight: 300; letter-spacing: 24px;
+    background: linear-gradient(135deg, #E8A849, #D4726A);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin: 10px 0;
+  }
+  .header .subtitle { font-size: 14px; color: #505868; letter-spacing: 6px; font-weight: 300; }
+  .header .divider {
+    width: 200px; height: 1px; margin: 20px auto;
+    background: linear-gradient(90deg, transparent, #604020, transparent);
+  }
+  .header .philosophy { font-size: 15px; color: #7A5A2A; font-style: italic; font-weight: 300; }
+
+  /* === STATS BAR === */
+  .stats-bar {
+    display: flex; justify-content: center; gap: 48px;
+    padding: 24px 0; margin: 10px 40px 40px;
+    border-top: 1px solid #1A1F2E; border-bottom: 1px solid #1A1F2E;
+    position: relative; z-index: 1;
+  }
+  .stat { text-align: center; }
+  .stat .val { font-size: 28px; font-weight: 700; color: #E8A849; font-family: 'JetBrains Mono'; }
+  .stat .lbl { font-size: 11px; color: #505868; letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
+
+  /* === LAYER === */
+  .layer {
+    position: relative; z-index: 1;
+    margin: 0 40px 20px;
+    padding: 32px;
+    border: 1px solid #1A1F2E;
+    border-radius: 12px;
+    background: rgba(10, 14, 24, 0.8);
+    backdrop-filter: blur(10px);
+  }
+  .layer:hover { border-color: #252A38; }
+
+  .layer-header {
+    display: flex; align-items: baseline; gap: 16px;
+    margin-bottom: 24px;
+  }
+  .layer-num {
+    font-family: 'JetBrains Mono'; font-size: 36px; font-weight: 500;
+    line-height: 1;
+  }
+  .layer-title { font-size: 13px; letter-spacing: 3px; font-weight: 600; text-transform: uppercase; }
+  .layer-tech { font-family: 'JetBrains Mono'; font-size: 12px; color: #505868; margin-left: auto; }
+
+  /* Layer colors */
+  .layer--interface { border-left: 3px solid #E8A849; }
+  .layer--interface .layer-num { color: #604020; }
+  .layer--interface .layer-title { color: #E8A849; }
+
+  .layer--api { border-left: 3px solid #5580B5; }
+  .layer--api .layer-num { color: #2A4060; }
+  .layer--api .layer-title { color: #5580B5; }
+
+  .layer--intelligence { border-left: 3px solid #D4726A; }
+  .layer--intelligence .layer-num { color: #6A3A36; }
+  .layer--intelligence .layer-title { color: #D4726A; }
+
+  .layer--persistence { border-left: 3px solid #5AAA8B; }
+  .layer--persistence .layer-num { color: #2A5040; }
+  .layer--persistence .layer-title { color: #5AAA8B; }
+
+  .layer--infra { border-left: 3px solid #505868; }
+  .layer--infra .layer-num { color: #303848; }
+  .layer--infra .layer-title { color: #505868; }
+
+  /* === NODES === */
+  .nodes {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    justify-content: center;
+  }
+
+  .node {
+    position: relative;
+    padding: 14px 20px;
+    border-radius: 8px;
+    border: 1px solid;
+    background: rgba(15, 20, 30, 0.6);
+    text-align: center;
+    min-width: 110px;
+    transition: all 0.3s ease;
+    cursor: default;
+  }
+  .node:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .node .name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .node .desc {
+    font-family: 'JetBrains Mono'; font-size: 11px;
+    opacity: 0.5;
+  }
+
+  /* Node colors */
+  .node--amber { border-color: #604020; }
+  .node--amber:hover { border-color: #E8A849; box-shadow: 0 0 20px rgba(232,168,73,0.1); }
+  .node--amber .name { color: #E8A849; }
+
+  .node--indigo { border-color: #2A4060; }
+  .node--indigo:hover { border-color: #5580B5; box-shadow: 0 0 20px rgba(85,128,181,0.1); }
+  .node--indigo .name { color: #5580B5; }
+
+  .node--coral { border-color: #6A3A36; }
+  .node--coral:hover { border-color: #D4726A; box-shadow: 0 0 20px rgba(212,114,106,0.1); }
+  .node--coral .name { color: #D4726A; }
+
+  .node--sage { border-color: #2A5040; }
+  .node--sage:hover { border-color: #5AAA8B; box-shadow: 0 0 20px rgba(90,170,139,0.1); }
+  .node--sage .name { color: #5AAA8B; }
+
+  .node--ghost { border-color: #252A38; }
+  .node--ghost:hover { border-color: #505868; }
+  .node--ghost .name { color: #505868; }
+
+  /* === CORE NODE (center, larger) === */
+  .core-node {
+    display: flex; flex-direction: column; align-items: center;
+    margin-bottom: 24px;
+  }
+  .core-circle {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border: 2px solid;
+    position: relative;
+  }
+  .core-circle::before {
+    content: '';
+    position: absolute;
+    top: -8px; left: -8px; right: -8px; bottom: -8px;
+    border-radius: 50%;
+    border: 1px dashed;
+    opacity: 0.3;
+    animation: spin 30s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+
+  .core-circle--amber { border-color: #E8A849; background: radial-gradient(circle, #1A1808, #0A0B05); }
+  .core-circle--amber::before { border-color: #604020; }
+
+  .core-circle--indigo { border-color: #5580B5; background: radial-gradient(circle, #0E1525, #080B14); }
+  .core-circle--indigo::before { border-color: #2A4060; }
+
+  .core-circle--coral { border-color: #D4726A; background: radial-gradient(circle, #1A100E, #080B14); }
+  .core-circle--coral::before { border-color: #6A3A36; animation: spin 20s linear infinite; }
+  .core-circle--coral::after {
+    content: '';
+    position: absolute;
+    top: -16px; left: -16px; right: -16px; bottom: -16px;
+    border-radius: 50%;
+    border: 1px dashed;
+    border-color: #3A1A18;
+    animation: spin 40s linear infinite reverse;
+  }
+
+  .core-circle--sage { border-color: #5AAA8B; background: radial-gradient(circle, #0A1A14, #080B14); }
+  .core-circle--sage::before { border-color: #2A5040; }
+
+  .core-name { font-size: 20px; font-weight: 700; }
+  .core-sub { font-family: 'JetBrains Mono'; font-size: 10px; opacity: 0.5; margin-top: 2px; }
+
+  /* === CONNECTOR === */
+  .connector {
+    display: flex; align-items: center; justify-content: center;
+    padding: 8px 0; margin: 0 40px;
+    position: relative; z-index: 1;
+  }
+  .connector-line {
+    width: 2px; height: 40px;
+    position: relative;
+  }
+  .connector-line::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, var(--from), var(--to));
+    opacity: 0.4;
+  }
+  .connector-label {
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    font-family: 'JetBrains Mono'; font-size: 11px; color: #303848;
+    white-space: nowrap;
+    top: 50%; margin-top: -8px;
+    padding: 0 12px;
+    background: #080B14;
+  }
+
+  /* === FLOW ARROWS (between layers) === */
+  .flow {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; padding: 6px 0;
+    margin: 0 40px;
+    position: relative; z-index: 1;
+  }
+  .flow-dot {
+    width: 3px; height: 3px; border-radius: 50%;
+    animation: flowPulse 2s ease-in-out infinite;
+  }
+  .flow-dot:nth-child(2) { animation-delay: 0.3s; }
+  .flow-dot:nth-child(3) { animation-delay: 0.6s; }
+  .flow-label {
+    font-family: 'JetBrains Mono'; font-size: 11px;
+    letter-spacing: 1px; margin: 4px 0;
+  }
+  @keyframes flowPulse { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
+
+  .flow--amber .flow-dot { background: #E8A849; }
+  .flow--amber .flow-label { color: #604020; }
+  .flow--indigo .flow-dot { background: #5580B5; }
+  .flow--indigo .flow-label { color: #2A4060; }
+  .flow--coral .flow-dot { background: #D4726A; }
+  .flow--coral .flow-label { color: #6A3A36; }
+  .flow--sage .flow-dot { background: #5AAA8B; }
+  .flow--sage .flow-label { color: #2A5040; }
+
+  /* === SUB SECTION === */
+  .sub-section {
+    margin-top: 16px; padding-top: 16px;
+    border-top: 1px solid #151A28;
+  }
+  .sub-label {
+    font-size: 11px; letter-spacing: 2px; color: #505868;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+
+  /* === LEGEND === */
+  .legend {
+    display: flex; justify-content: center; gap: 32px;
+    padding: 24px 40px;
+    position: relative; z-index: 1;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .legend-text { font-size: 12px; color: #505868; font-family: 'JetBrains Mono'; }
+
+  /* === FOOTER === */
+  .footer {
+    text-align: center; padding: 20px 40px;
+    border-top: 1px solid #1A1F2E;
+    margin: 20px 40px 0;
+    position: relative; z-index: 1;
+  }
+  .footer span { font-family: 'JetBrains Mono'; font-size: 11px; color: #303848; }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 1240px) {
+    .canvas { width: 100%; padding: 20px; }
+    .layer, .stats-bar, .flow, .legend, .footer { margin-left: 20px; margin-right: 20px; }
+  }
+
+  /* === TOOLTIP === */
+  .node[data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%; transform: translateX(-50%);
+    background: #1A1F2E;
+    color: #C8CCD4;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10;
+    border: 1px solid #252A38;
+  }
+</style>
+</head>
+<body>
+
+<div class="canvas">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="ref-line">
+      <span class="ref">NC-001</span>
+      <span class="ref">2026.03.22</span>
+    </div>
+    <hr>
+    <h1>MUSE</h1>
+    <p class="subtitle">SYSTEM ARCHITECTURE</p>
+    <div class="divider"></div>
+    <p class="philosophy">Neural Cartography of Character Conversations</p>
+  </header>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat"><div class="val">2</div><div class="lbl">Users</div></div>
+    <div class="stat"><div class="val">60+</div><div class="lbl">Characters</div></div>
+    <div class="stat"><div class="val">13</div><div class="lbl">Scenarios</div></div>
+    <div class="stat"><div class="val">3</div><div class="lbl">Personas</div></div>
+    <div class="stat"><div class="val">12</div><div class="lbl">Anime</div></div>
+  </div>
+
+  <!-- LAYER 01: INTERFACE -->
+  <div class="layer layer--interface">
+    <div class="layer-header">
+      <span class="layer-num">01</span>
+      <span class="layer-title">Interface</span>
+      <span class="layer-tech">Flutter 3.x &middot; Dart &middot; Riverpod &middot; GoRouter</span>
+    </div>
+
+    <div class="core-node">
+      <div class="core-circle core-circle--amber">
+        <span class="core-name" style="color:#E8A849">Flutter</span>
+        <span class="core-sub">StatefulShellRoute</span>
+      </div>
+    </div>
+
+    <div class="sub-label">Bottom Navigation (4 Tabs)</div>
+    <div class="nodes">
+      <div class="node node--amber" data-tip="대화 목록 · 그룹핑 표시">
+        <div class="name">채팅</div>
+        <div class="desc">/conversations</div>
+      </div>
+      <div class="node node--amber" data-tip="60+ 캐릭터 브라우징">
+        <div class="name">캐릭터</div>
+        <div class="desc">/characters</div>
+      </div>
+      <div class="node node--amber" data-tip="시나리오 카드 · 인라인 채팅 생성">
+        <div class="name">시나리오</div>
+        <div class="desc">/scenarios</div>
+      </div>
+      <div class="node node--amber" data-tip="프로필 · 페르소나 관리">
+        <div class="name">내 정보</div>
+        <div class="desc">/profile</div>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <div class="sub-label">Full-screen Routes</div>
+      <div class="nodes">
+        <div class="node node--amber" data-tip="1:1 캐릭터 대화 · SSE 스트리밍">
+          <div class="name">1:1 Chat</div>
+          <div class="desc">/chat/:id</div>
+        </div>
+        <div class="node node--amber" data-tip="그룹 채팅 · God Agent 오케스트레이션">
+          <div class="name">Group Chat</div>
+          <div class="desc">/group-chat/:id</div>
+        </div>
+        <div class="node node--amber" data-tip="PIN 인증 · 프로필 선택">
+          <div class="name">PIN Auth</div>
+          <div class="desc">/pin-auth</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW: Interface → API -->
+  <div class="flow flow--amber">
+    <div class="flow-dot"></div>
+    <div class="flow-dot"></div>
+    <div class="flow-label">HTTP &middot; SSE Streaming</div>
+    <div class="flow-dot"></div>
+    <div class="flow-dot"></div>
+  </div>
+
+  <!-- LAYER 02: API -->
+  <div class="layer layer--api">
+    <div class="layer-header">
+      <span class="layer-num">02</span>
+      <span class="layer-title">API Gateway</span>
+      <span class="layer-tech">FastAPI &middot; Python 3.12 &middot; Uvicorn</span>
+    </div>
+
+    <div class="core-node">
+      <div class="core-circle core-circle--indigo">
+        <span class="core-name" style="color:#5580B5">FastAPI</span>
+        <span class="core-sub">SQLAlchemy ORM</span>
+      </div>
+    </div>
+
+    <div class="sub-label">API Endpoints</div>
+    <div class="nodes">
+      <div class="node node--indigo" data-tip="PIN 인증 · JWT 토큰 발급 · 프로필 관리">
+        <div class="name">/auth</div>
+        <div class="desc">JWT &middot; PIN</div>
+      </div>
+      <div class="node node--indigo" data-tip="캐릭터 CRUD · 자동생성 · Jikan 이미지">
+        <div class="name">/characters</div>
+        <div class="desc">CRUD &middot; Auto-gen</div>
+      </div>
+      <div class="node node--indigo" data-tip="시나리오 CRUD · 자동생성 · purpose 필드">
+        <div class="name">/scenarios</div>
+        <div class="desc">CRUD &middot; Auto-gen</div>
+      </div>
+      <div class="node node--indigo" data-tip="1:1 채팅 · SSE 스트리밍 · 컨텍스트 관리">
+        <div class="name">/chat</div>
+        <div class="desc">Streaming</div>
+      </div>
+      <div class="node node--indigo" data-tip="그룹 채팅 · God Agent · 멀티 캐릭터 응답">
+        <div class="name">/group-chat</div>
+        <div class="desc">God Agent</div>
+      </div>
+      <div class="node node--indigo" data-tip="대화 목록 · 그룹핑 · 최신순 정렬">
+        <div class="name">/conversations</div>
+        <div class="desc">History</div>
+      </div>
+      <div class="node node--indigo" data-tip="유저 페르소나 관리">
+        <div class="name">/personas</div>
+        <div class="desc">Identity</div>
+      </div>
+      <div class="node node--indigo" data-tip="로컬 아바타 이미지 서빙">
+        <div class="name">/static</div>
+        <div class="desc">Avatars</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW: API → Intelligence -->
+  <div class="flow flow--coral">
+    <div class="flow-dot"></div>
+    <div class="flow-dot"></div>
+    <div class="flow-label">claude -p CLI &middot; Prompt &rarr; Stream</div>
+    <div class="flow-dot"></div>
+    <div class="flow-dot"></div>
+  </div>
+
+  <!-- LAYER 03: INTELLIGENCE -->
+  <div class="layer layer--intelligence">
+    <div class="layer-header">
+      <span class="layer-num">03</span>
+      <span class="layer-title">Intelligence</span>
+      <span class="layer-tech">Claude CLI &middot; OAuth &middot; Streaming</span>
+    </div>
+
+    <div class="core-node">
+      <div class="core-circle core-circle--coral">
+        <span class="core-name" style="color:#D4726A">Claude</span>
+        <span class="core-sub">LLM Engine</span>
+      </div>
+    </div>
+
+    <div class="nodes">
+      <div class="node node--coral" data-tip="1:1/그룹 채팅 · 롤플레이 대화 · 고품질 응답">
+        <div class="name">Sonnet</div>
+        <div class="desc">대화 &middot; 롤플레이</div>
+      </div>
+      <div class="node node--coral" data-tip="캐릭터/시나리오 자동생성 · 경량 모델">
+        <div class="name">Haiku</div>
+        <div class="desc">자동생성</div>
+      </div>
+      <div class="node node--coral" data-tip="그룹 채팅 오케스트레이터 · 응답 캐릭터 결정 · 순서 배정">
+        <div class="name">God Agent</div>
+        <div class="desc">Orchestrator</div>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <div class="sub-label">Model Mapping</div>
+      <div class="nodes">
+        <div class="node node--ghost">
+          <div class="name" style="color:#888">claude-sonnet-4</div>
+          <div class="desc">&rarr; sonnet</div>
+        </div>
+        <div class="node node--ghost">
+          <div class="name" style="color:#888">gpt-4o-mini</div>
+          <div class="desc">&rarr; haiku</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW: Intelligence → Persistence -->
+  <div class="flow flow--sage">
+    <div class="flow-dot"></div>
+    <div class="flow-dot"></div>
+    <div class="flow-label">SQLAlchemy &middot; Read / Write</div>
+    <div class="flow-dot"></div>
+    <div class="flow-dot"></div>
+  </div>
+
+  <!-- LAYER 04: PERSISTENCE -->
+  <div class="layer layer--persistence">
+    <div class="layer-header">
+      <span class="layer-num">04</span>
+      <span class="layer-title">Persistence</span>
+      <span class="layer-tech">PostgreSQL &middot; SQLAlchemy &middot; Alembic</span>
+    </div>
+
+    <div class="core-node">
+      <div class="core-circle core-circle--sage">
+        <span class="core-name" style="color:#5AAA8B">PostgreSQL</span>
+        <span class="core-sub">Relational DB</span>
+      </div>
+    </div>
+
+    <div class="sub-label">Entities</div>
+    <div class="nodes">
+      <div class="node node--sage"><div class="name">users</div><div class="desc">계정</div></div>
+      <div class="node node--sage"><div class="name">profiles</div><div class="desc">프로필 &middot; PIN</div></div>
+      <div class="node node--sage"><div class="name">characters</div><div class="desc">캐릭터 정보</div></div>
+      <div class="node node--sage"><div class="name">scenarios</div><div class="desc">시나리오 &middot; purpose</div></div>
+      <div class="node node--sage"><div class="name">conversations</div><div class="desc">대화 세션</div></div>
+      <div class="node node--sage"><div class="name">messages</div><div class="desc">채팅 메시지</div></div>
+      <div class="node node--sage"><div class="name">personas</div><div class="desc">유저 페르소나</div></div>
+      <div class="node node--sage"><div class="name">avatars</div><div class="desc">로컬 이미지</div></div>
+    </div>
+  </div>
+
+  <!-- FLOW: Persistence → Infra -->
+  <div class="flow flow--sage">
+    <div class="flow-dot" style="background:#505868"></div>
+    <div class="flow-dot" style="background:#505868"></div>
+    <div class="flow-label" style="color:#303848">Hosted On</div>
+    <div class="flow-dot" style="background:#505868"></div>
+  </div>
+
+  <!-- LAYER 05: INFRASTRUCTURE -->
+  <div class="layer layer--infra">
+    <div class="layer-header">
+      <span class="layer-num">05</span>
+      <span class="layer-title">Infrastructure</span>
+      <span class="layer-tech">Oracle Cloud &middot; systemd &middot; SELinux</span>
+    </div>
+
+    <div class="nodes">
+      <div class="node node--ghost" data-tip="Oracle Linux 9.7 · x86_64">
+        <div class="name">Oracle Cloud</div>
+        <div class="desc">x86_64 &middot; 1GB RAM</div>
+      </div>
+      <div class="node node--ghost" data-tip="muse.service · auto-restart">
+        <div class="name">systemd</div>
+        <div class="desc">Service Manager</div>
+      </div>
+      <div class="node node--ghost" data-tip="Enforcing mode · bin_t context">
+        <div class="name">SELinux</div>
+        <div class="desc">Enforcing</div>
+      </div>
+      <div class="node node--ghost" data-tip="메모리 부족 대비">
+        <div class="name">Swap</div>
+        <div class="desc">2GB</div>
+      </div>
+      <div class="node node--ghost" data-tip="Python 3.12 가상환경">
+        <div class="name">venv</div>
+        <div class="desc">Python 3.12</div>
+      </div>
+      <div class="node node--ghost" data-tip="158.180.83.142:8000">
+        <div class="name">Endpoint</div>
+        <div class="desc">:8000</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#E8A849"></div>
+      <span class="legend-text">Interface</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#5580B5"></div>
+      <span class="legend-text">API</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#D4726A"></div>
+      <span class="legend-text">Intelligence</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#5AAA8B"></div>
+      <span class="legend-text">Persistence</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#505868"></div>
+      <span class="legend-text">Infrastructure</span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <span>MUSE v2.0.0 &mdash; Neural Cartography &middot; NC-001 &middot; 2026.03.22</span>
+  </div>
+
+</div>
+
+</body>
+</html>

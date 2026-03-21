@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../data/models/conversation.dart';
 import '../../../data/providers/chat_provider.dart';
 
-final conversationListProvider = FutureProvider<List<Conversation>>((ref) async {
+final conversationListProvider = FutureProvider.autoDispose<List<Conversation>>((ref) async {
   final repository = ref.watch(chatRepositoryProvider);
   return await repository.getConversations();
 });

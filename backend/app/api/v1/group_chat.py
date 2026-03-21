@@ -277,7 +277,7 @@ async def send_group_message(
 2. 유저({user_name})를 페르소나 이름으로 부를 것
 3. 세계 상태와 시나리오 배경에 맞게 상황을 조율
 4. 모든 캐릭터가 반응할 필요 없음 — 상황에 맞는 캐릭터만 대답 (최소 1명)
-5. 각 캐릭터는 1인칭으로, 1-3문장 짧게 말할 것
+5. 각 캐릭터는 1인칭으로, 반드시 1문장만 짧게 말할 것 (절대 길게 쓰지 마)
 6. 시작에 [상황 나레이션]을 한 줄 넣을 것
 7. 한국어로 작성
 
@@ -299,7 +299,7 @@ async def send_group_message(
                 messages=[{"role": "user", "content": combined_prompt}],
                 model="claude-sonnet-4-20250514",
                 temperature=0.7,
-                max_tokens=1000,
+                max_tokens=300,
             ):
                 full_response += chunk
 

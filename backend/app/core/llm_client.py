@@ -28,16 +28,15 @@ class ClaudeCLIClient:
     # Map model names to CLI model flags
     @staticmethod
     def _cli_model(model: str) -> str:
-        if "haiku" in model or "gpt-4o-mini" in model:
-            return "haiku"
-        return "sonnet"
+        # 서버 성능 최적화: 모든 요청을 haiku로 처리
+        return "haiku"
 
     async def complete(
         self,
         messages: list[dict[str, str]],
         model: str = "claude-sonnet-4-20250514",
         temperature: float = 0.7,
-        max_tokens: int = 1000,
+        max_tokens: int = 300,
         **kwargs,
     ) -> str:
         prompt = self._messages_to_prompt(messages)
@@ -47,7 +46,7 @@ class ClaudeCLIClient:
             "--output-format", "text",
             "--no-session-persistence",
             "--plugin-dir", "/tmp/muse-empty-plugins",
-            "--system-prompt", "You are a roleplay AI. Follow the user's instructions exactly. Respond only in character.",
+            "--system-prompt", "You are a roleplay AI. Respond in character. Keep responses SHORT: 1-2 sentences max. Korean only. No explanations.",
         ]
 
         logger.debug(f"Claude CLI complete: {len(prompt)} chars")
@@ -84,7 +83,7 @@ class ClaudeCLIClient:
         messages: list[dict[str, str]],
         model: str = "claude-sonnet-4-20250514",
         temperature: float = 0.7,
-        max_tokens: int = 1000,
+        max_tokens: int = 300,
         **kwargs,
     ) -> AsyncIterator[str]:
         prompt = self._messages_to_prompt(messages)
@@ -96,7 +95,7 @@ class ClaudeCLIClient:
             "--verbose",
             "--no-session-persistence",
             "--plugin-dir", "/tmp/muse-empty-plugins",
-            "--system-prompt", "You are a roleplay AI. Follow the user's instructions exactly. Respond only in character.",
+            "--system-prompt", "You are a roleplay AI. Respond in character. Keep responses SHORT: 1-2 sentences max. Korean only. No explanations.",
         ]
 
         logger.debug(f"Claude CLI stream: {len(prompt)} chars")
@@ -187,7 +186,7 @@ class LiteLLMClient:
         messages: list[dict[str, str]],
         model: str = GPT4O_MINI,
         temperature: float = 0.7,
-        max_tokens: int = 1000,
+        max_tokens: int = 300,
         **kwargs,
     ) -> str:
         response = await acompletion(
@@ -205,7 +204,7 @@ class LiteLLMClient:
         messages: list[dict[str, str]],
         model: str = GPT4O_MINI,
         temperature: float = 0.7,
-        max_tokens: int = 1000,
+        max_tokens: int = 300,
         **kwargs,
     ) -> AsyncIterator[str]:
         response = await acompletion(

@@ -413,7 +413,9 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
           ),
 
           // Input field
-          Container(
+          SafeArea(
+            top: false,
+            child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
@@ -454,6 +456,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                 ),
               ],
             ),
+          ),
           ),
         ],
       ),

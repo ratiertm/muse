@@ -1,0 +1,22 @@
+[
+  {
+    "source_work": "귀멸의 칼날",
+    "is_public": true,
+    "characters": ["카마도 탄지로", "카마도 네즈코", "아가츠마 젠이츠"]
+  },
+  {
+    "source_work": "원피스",
+    "is_public": true,
+    "characters": ["몽키 D. 루피", "로로노아 조로", "니코 로빈"]
+  },
+  {
+    "source_work": "나의 히어로 아카데미아",
+    "is_public": true,
+    "characters": ["미도리야 이즈쿠", "바쿠고 카츠키"]
+  },
+  {
+    "source_work": "주술회전",
+    "is_public": true,
+    "characters": ["이타도리 유지", "고죠 사토루"]
+  }
+]

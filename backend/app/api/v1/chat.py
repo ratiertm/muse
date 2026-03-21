@@ -81,7 +81,7 @@ async def test_stream_chat(
                 messages=messages,
                 model=request.model,
                 temperature=0.7,
-                max_tokens=1000,
+                max_tokens=300,
             ):
                 # Send as SSE event
                 yield f"data: {chunk}\n\n"
@@ -282,7 +282,7 @@ async def stream_chat(
                 messages=context_messages,
                 model=model,
                 temperature=0.7,
-                max_tokens=1000,
+                max_tokens=300,
             ):
                 assistant_response += chunk
                 # Send as SSE event
@@ -446,7 +446,7 @@ async def regenerate_response(
                 messages=context_messages,
                 model=model,
                 temperature=0.8,  # Slightly higher for variety on regeneration
-                max_tokens=1000,
+                max_tokens=300,
             ):
                 assistant_response += chunk
                 yield f"data: {chunk}\n\n"
