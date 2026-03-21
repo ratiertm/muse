@@ -82,7 +82,7 @@ Generate the character card now:"""
             # Generate with GPT-4o-mini (faster and cheaper for structured output)
             response = await self.llm.complete(
                 messages=messages,
-                model=LLMClient.GPT4O_MINI,
+                model="gpt-4o-mini",
                 temperature=0.7,
                 max_tokens=2000,
             )
@@ -92,6 +92,14 @@ Generate the character card now:"""
             # Parse JSON response
             character_data = self._parse_json_response(response)
             
+            # Fix fields that might come as lists instead of strings
+            for field in ['example_dialogue', 'backstory', 'personality', 'speech_style', 'scenario', 'first_message']:
+                if field in character_data and isinstance(character_data[field], list):
+                    character_data[field] = "\n".join(
+                        str(item) if isinstance(item, str) else json.dumps(item, ensure_ascii=False)
+                        for item in character_data[field]
+                    )
+
             # Validate and create CharacterCreate instance
             character = CharacterCreate(**character_data)
             

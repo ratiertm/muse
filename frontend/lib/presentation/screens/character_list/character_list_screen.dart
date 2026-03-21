@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/providers/character_provider.dart';
-import '../../../core/utils/dialog_utils.dart';
 import '../../widgets/character_card.dart';
 import '../../widgets/loading_shimmer.dart';
 import '../../widgets/empty_state.dart';
@@ -17,79 +16,7 @@ class CharacterListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('내 캐릭터'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await ref.read(authStateProvider.notifier).logout();
-              if (context.mounted) {
-                context.go('/profile-selection');
-              }
-            },
-          ),
-        ],
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Icon(Icons.chat, size: 48, color: Colors.white),
-                  SizedBox(height: 8),
-                  Text(
-                    'Muse',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('내 캐릭터'),
-              selected: true,
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.movie),
-              title: const Text('시나리오'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/scenarios');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.group),
-              title: const Text('그룹 채팅 만들기'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/group/create');
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('설정'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/settings');
-              },
-            ),
-          ],
-        ),
+        title: const Text('캐릭터'),
       ),
       body: charactersAsync.when(
         data: (characters) {
@@ -99,7 +26,7 @@ class CharacterListScreen extends ConsumerWidget {
               title: '캐릭터가 없습니다',
               message: '+ 버튼을 눌러 새로운 캐릭터를 만들어보세요!',
               actionLabel: '캐릭터 만들기',
-              onAction: () => context.push('/character/create'),
+              onAction: () => context.push('/characters/create'),
             );
           }
 
@@ -123,6 +50,44 @@ class CharacterListScreen extends ConsumerWidget {
                   onTap: () {
                     context.push('/chat/${character.id}');
                   },
+                  onEdit: character.isMine ? () {
+                    context.push('/characters/edit/${character.id}');
+                  } : null,
+                  onDelete: character.isMine ? () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('캐릭터 삭제'),
+                        content: Text('"${character.name}"을(를) 삭제하시겠습니까?'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            style: TextButton.styleFrom(foregroundColor: Colors.red),
+                            child: const Text('삭제'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true) {
+                      try {
+                        final apiClient = ref.read(apiClientProvider);
+                        await apiClient.delete('/api/v1/characters/${character.id}');
+                        ref.invalidate(characterListProvider);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('삭제되었습니다')),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('삭제 실패: $e')),
+                          );
+                        }
+                      }
+                    }
+                  } : null,
                 );
               },
             ),
@@ -149,7 +114,7 @@ class CharacterListScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.push('/character/create');
+          context.push('/characters/create');
         },
         child: const Icon(Icons.add),
       ),

@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-03-20T12:30:32.326Z",
+  "lastUpdated": "2026-03-21T05:15:35.546Z",
   "activeFeatures": [
     "core",
     "backend",
@@ -8,7 +8,9 @@
     "schemas",
     "chat_service.py",
     "persona_service.py",
-    "versions"
+    "versions",
+    "scenario_service.py",
+    "character_service.py"
   ],
   "primaryFeature": "core",
   "features": {
@@ -21,9 +23,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-03-20T12:20:29.596Z",
-        "lastUpdated": "2026-03-20T12:21:32.533Z"
+        "lastUpdated": "2026-03-21T00:23:57.944Z"
       },
-      "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/app/core/avatar_generator.py"
+      "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/app/core/auto_generator.py"
     },
     "backend": {
       "phase": "do",
@@ -34,9 +36,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-03-20T12:20:48.145Z",
-        "lastUpdated": "2026-03-20T12:24:40.513Z"
+        "lastUpdated": "2026-03-21T04:20:41.963Z"
       },
-      "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/app/models/__init__.py"
+      "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/app/models/scenario.py"
     },
     "v1": {
       "phase": "do",
@@ -47,9 +49,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-03-20T12:21:03.663Z",
-        "lastUpdated": "2026-03-20T12:30:32.326Z"
+        "lastUpdated": "2026-03-21T05:15:35.546Z"
       },
-      "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/app/api/v1/chat.py"
+      "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/app/api/v1/scenarios.py"
     },
     "schemas": {
       "phase": "do",
@@ -60,9 +62,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-03-20T12:22:43.384Z",
-        "lastUpdated": "2026-03-20T12:24:51.277Z"
+        "lastUpdated": "2026-03-21T04:21:41.742Z"
       },
-      "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/app/schemas/persona.py"
+      "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/app/schemas/scenario.py"
     },
     "chat_service.py": {
       "phase": "do",
@@ -73,7 +75,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-03-20T12:22:50.748Z",
-        "lastUpdated": "2026-03-20T12:23:00.432Z"
+        "lastUpdated": "2026-03-20T22:37:06.055Z"
       },
       "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/app/services/chat_service.py"
     },
@@ -99,9 +101,35 @@
       "documents": {},
       "timestamps": {
         "started": "2026-03-20T12:26:50.093Z",
-        "lastUpdated": "2026-03-20T12:26:50.093Z"
+        "lastUpdated": "2026-03-20T22:36:29.321Z"
       },
-      "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/alembic/versions/a1b2c3d4e5f6_add_user_personas_table.py"
+      "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/alembic/versions/b2c3d4e5f6g7_add_persona_id_to_conversations.py"
+    },
+    "scenario_service.py": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-21T02:40:38.932Z",
+        "lastUpdated": "2026-03-21T02:41:59.915Z"
+      },
+      "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/app/services/scenario_service.py"
+    },
+    "character_service.py": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-21T02:41:04.636Z",
+        "lastUpdated": "2026-03-21T02:41:17.248Z"
+      },
+      "lastFile": "/Users/leeeunmi/Projects/active/muse/backend/app/services/character_service.py"
     }
   },
   "pipeline": {
@@ -112,7 +140,7 @@
   "session": {
     "startedAt": "2026-03-20T12:13:16.069Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-03-20T12:30:32.326Z"
+    "lastActivity": "2026-03-21T05:15:35.546Z"
   },
   "history": [
     {
@@ -297,6 +325,492 @@
     },
     {
       "timestamp": "2026-03-20T12:30:32.326Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T13:41:09.104Z",
+      "feature": "backend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T13:41:35.587Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T13:47:15.480Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T13:48:33.689Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T13:49:58.897Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T13:50:17.900Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:02:01.312Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:02:48.687Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:36:06.179Z",
+      "feature": "backend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:36:15.976Z",
+      "feature": "backend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:36:29.321Z",
+      "feature": "versions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:36:40.590Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:36:51.659Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:37:06.055Z",
+      "feature": "chat_service.py",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:37:16.773Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:37:27.468Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:37:38.651Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:37:49.403Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:51:57.103Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:52:14.102Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T22:58:31.552Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T23:07:13.138Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T23:11:32.608Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T23:15:00.234Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T23:15:13.128Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T23:19:07.417Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T23:19:21.136Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T23:21:28.151Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T23:21:51.421Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T23:22:13.575Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T23:23:30.344Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T23:43:20.349Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-20T23:43:34.230Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T00:16:21.010Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T00:23:57.944Z",
+      "feature": "core",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T00:27:53.201Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T00:28:08.612Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T00:28:28.446Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T00:36:20.944Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T01:09:36.882Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T01:12:13.862Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T01:15:05.146Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T01:15:17.829Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T01:18:19.090Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T01:25:28.542Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T01:29:33.861Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T01:29:55.331Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T01:37:38.697Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T01:50:45.790Z",
+      "feature": "backend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:08:57.278Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:09:07.390Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:09:09.007Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:40:02.703Z",
+      "feature": "backend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:40:04.412Z",
+      "feature": "backend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:40:06.334Z",
+      "feature": "backend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:40:07.474Z",
+      "feature": "backend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:40:24.962Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:40:27.288Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:40:29.105Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:40:30.430Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:40:32.058Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:40:38.932Z",
+      "feature": "scenario_service.py",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:40:42.941Z",
+      "feature": "scenario_service.py",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:40:45.470Z",
+      "feature": "scenario_service.py",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:41:04.636Z",
+      "feature": "character_service.py",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:41:05.785Z",
+      "feature": "character_service.py",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:41:15.330Z",
+      "feature": "character_service.py",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:41:17.249Z",
+      "feature": "character_service.py",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:41:23.876Z",
+      "feature": "scenario_service.py",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:41:25.598Z",
+      "feature": "scenario_service.py",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:41:33.919Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:41:47.608Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:41:59.915Z",
+      "feature": "scenario_service.py",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T02:42:10.894Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T03:53:44.616Z",
+      "feature": "backend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T03:53:46.104Z",
+      "feature": "backend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T04:20:41.963Z",
+      "feature": "backend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T04:21:27.453Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T04:21:41.742Z",
+      "feature": "schemas",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T04:21:50.696Z",
+      "feature": "v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-21T05:15:35.546Z",
       "feature": "v1",
       "phase": "do",
       "action": "updated"

@@ -25,7 +25,12 @@ mixin _$Scenario {
   String get userId => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
+  String get purpose => throw _privateConstructorUsedError;
   Map<String, dynamic> get worldState => throw _privateConstructorUsedError;
+  bool get isPublic => throw _privateConstructorUsedError;
+  bool get isMine => throw _privateConstructorUsedError;
+  List<Map<String, dynamic>> get characterAvatars =>
+      throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
 
@@ -49,7 +54,11 @@ abstract class $ScenarioCopyWith<$Res> {
     String userId,
     String name,
     String description,
+    String purpose,
     Map<String, dynamic> worldState,
+    bool isPublic,
+    bool isMine,
+    List<Map<String, dynamic>> characterAvatars,
     DateTime createdAt,
     DateTime updatedAt,
   });
@@ -74,7 +83,11 @@ class _$ScenarioCopyWithImpl<$Res, $Val extends Scenario>
     Object? userId = null,
     Object? name = null,
     Object? description = null,
+    Object? purpose = null,
     Object? worldState = null,
+    Object? isPublic = null,
+    Object? isMine = null,
+    Object? characterAvatars = null,
     Object? createdAt = null,
     Object? updatedAt = null,
   }) {
@@ -96,10 +109,26 @@ class _$ScenarioCopyWithImpl<$Res, $Val extends Scenario>
                 ? _value.description
                 : description // ignore: cast_nullable_to_non_nullable
                       as String,
+            purpose: null == purpose
+                ? _value.purpose
+                : purpose // ignore: cast_nullable_to_non_nullable
+                      as String,
             worldState: null == worldState
                 ? _value.worldState
                 : worldState // ignore: cast_nullable_to_non_nullable
                       as Map<String, dynamic>,
+            isPublic: null == isPublic
+                ? _value.isPublic
+                : isPublic // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isMine: null == isMine
+                ? _value.isMine
+                : isMine // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            characterAvatars: null == characterAvatars
+                ? _value.characterAvatars
+                : characterAvatars // ignore: cast_nullable_to_non_nullable
+                      as List<Map<String, dynamic>>,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -128,7 +157,11 @@ abstract class _$$ScenarioImplCopyWith<$Res>
     String userId,
     String name,
     String description,
+    String purpose,
     Map<String, dynamic> worldState,
+    bool isPublic,
+    bool isMine,
+    List<Map<String, dynamic>> characterAvatars,
     DateTime createdAt,
     DateTime updatedAt,
   });
@@ -152,7 +185,11 @@ class __$$ScenarioImplCopyWithImpl<$Res>
     Object? userId = null,
     Object? name = null,
     Object? description = null,
+    Object? purpose = null,
     Object? worldState = null,
+    Object? isPublic = null,
+    Object? isMine = null,
+    Object? characterAvatars = null,
     Object? createdAt = null,
     Object? updatedAt = null,
   }) {
@@ -174,10 +211,26 @@ class __$$ScenarioImplCopyWithImpl<$Res>
             ? _value.description
             : description // ignore: cast_nullable_to_non_nullable
                   as String,
+        purpose: null == purpose
+            ? _value.purpose
+            : purpose // ignore: cast_nullable_to_non_nullable
+                  as String,
         worldState: null == worldState
             ? _value._worldState
             : worldState // ignore: cast_nullable_to_non_nullable
                   as Map<String, dynamic>,
+        isPublic: null == isPublic
+            ? _value.isPublic
+            : isPublic // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isMine: null == isMine
+            ? _value.isMine
+            : isMine // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        characterAvatars: null == characterAvatars
+            ? _value._characterAvatars
+            : characterAvatars // ignore: cast_nullable_to_non_nullable
+                  as List<Map<String, dynamic>>,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -199,10 +252,15 @@ class _$ScenarioImpl implements _Scenario {
     required this.userId,
     required this.name,
     required this.description,
+    this.purpose = '',
     required final Map<String, dynamic> worldState,
+    this.isPublic = false,
+    this.isMine = false,
+    final List<Map<String, dynamic>> characterAvatars = const [],
     required this.createdAt,
     required this.updatedAt,
-  }) : _worldState = worldState;
+  }) : _worldState = worldState,
+       _characterAvatars = characterAvatars;
 
   factory _$ScenarioImpl.fromJson(Map<String, dynamic> json) =>
       _$$ScenarioImplFromJson(json);
@@ -215,6 +273,9 @@ class _$ScenarioImpl implements _Scenario {
   final String name;
   @override
   final String description;
+  @override
+  @JsonKey()
+  final String purpose;
   final Map<String, dynamic> _worldState;
   @override
   Map<String, dynamic> get worldState {
@@ -224,13 +285,29 @@ class _$ScenarioImpl implements _Scenario {
   }
 
   @override
+  @JsonKey()
+  final bool isPublic;
+  @override
+  @JsonKey()
+  final bool isMine;
+  final List<Map<String, dynamic>> _characterAvatars;
+  @override
+  @JsonKey()
+  List<Map<String, dynamic>> get characterAvatars {
+    if (_characterAvatars is EqualUnmodifiableListView)
+      return _characterAvatars;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_characterAvatars);
+  }
+
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
 
   @override
   String toString() {
-    return 'Scenario(id: $id, userId: $userId, name: $name, description: $description, worldState: $worldState, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Scenario(id: $id, userId: $userId, name: $name, description: $description, purpose: $purpose, worldState: $worldState, isPublic: $isPublic, isMine: $isMine, characterAvatars: $characterAvatars, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -243,9 +320,17 @@ class _$ScenarioImpl implements _Scenario {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.purpose, purpose) || other.purpose == purpose) &&
             const DeepCollectionEquality().equals(
               other._worldState,
               _worldState,
+            ) &&
+            (identical(other.isPublic, isPublic) ||
+                other.isPublic == isPublic) &&
+            (identical(other.isMine, isMine) || other.isMine == isMine) &&
+            const DeepCollectionEquality().equals(
+              other._characterAvatars,
+              _characterAvatars,
             ) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -261,7 +346,11 @@ class _$ScenarioImpl implements _Scenario {
     userId,
     name,
     description,
+    purpose,
     const DeepCollectionEquality().hash(_worldState),
+    isPublic,
+    isMine,
+    const DeepCollectionEquality().hash(_characterAvatars),
     createdAt,
     updatedAt,
   );
@@ -286,7 +375,11 @@ abstract class _Scenario implements Scenario {
     required final String userId,
     required final String name,
     required final String description,
+    final String purpose,
     required final Map<String, dynamic> worldState,
+    final bool isPublic,
+    final bool isMine,
+    final List<Map<String, dynamic>> characterAvatars,
     required final DateTime createdAt,
     required final DateTime updatedAt,
   }) = _$ScenarioImpl;
@@ -303,7 +396,15 @@ abstract class _Scenario implements Scenario {
   @override
   String get description;
   @override
+  String get purpose;
+  @override
   Map<String, dynamic> get worldState;
+  @override
+  bool get isPublic;
+  @override
+  bool get isMine;
+  @override
+  List<Map<String, dynamic>> get characterAvatars;
   @override
   DateTime get createdAt;
   @override
@@ -325,7 +426,9 @@ ScenarioCreate _$ScenarioCreateFromJson(Map<String, dynamic> json) {
 mixin _$ScenarioCreate {
   String get name => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
+  String get purpose => throw _privateConstructorUsedError;
   Map<String, dynamic> get worldState => throw _privateConstructorUsedError;
+  bool get isPublic => throw _privateConstructorUsedError;
 
   /// Serializes this ScenarioCreate to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -344,7 +447,13 @@ abstract class $ScenarioCreateCopyWith<$Res> {
     $Res Function(ScenarioCreate) then,
   ) = _$ScenarioCreateCopyWithImpl<$Res, ScenarioCreate>;
   @useResult
-  $Res call({String name, String description, Map<String, dynamic> worldState});
+  $Res call({
+    String name,
+    String description,
+    String purpose,
+    Map<String, dynamic> worldState,
+    bool isPublic,
+  });
 }
 
 /// @nodoc
@@ -364,7 +473,9 @@ class _$ScenarioCreateCopyWithImpl<$Res, $Val extends ScenarioCreate>
   $Res call({
     Object? name = null,
     Object? description = null,
+    Object? purpose = null,
     Object? worldState = null,
+    Object? isPublic = null,
   }) {
     return _then(
       _value.copyWith(
@@ -376,10 +487,18 @@ class _$ScenarioCreateCopyWithImpl<$Res, $Val extends ScenarioCreate>
                 ? _value.description
                 : description // ignore: cast_nullable_to_non_nullable
                       as String,
+            purpose: null == purpose
+                ? _value.purpose
+                : purpose // ignore: cast_nullable_to_non_nullable
+                      as String,
             worldState: null == worldState
                 ? _value.worldState
                 : worldState // ignore: cast_nullable_to_non_nullable
                       as Map<String, dynamic>,
+            isPublic: null == isPublic
+                ? _value.isPublic
+                : isPublic // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -395,7 +514,13 @@ abstract class _$$ScenarioCreateImplCopyWith<$Res>
   ) = __$$ScenarioCreateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String name, String description, Map<String, dynamic> worldState});
+  $Res call({
+    String name,
+    String description,
+    String purpose,
+    Map<String, dynamic> worldState,
+    bool isPublic,
+  });
 }
 
 /// @nodoc
@@ -414,7 +539,9 @@ class __$$ScenarioCreateImplCopyWithImpl<$Res>
   $Res call({
     Object? name = null,
     Object? description = null,
+    Object? purpose = null,
     Object? worldState = null,
+    Object? isPublic = null,
   }) {
     return _then(
       _$ScenarioCreateImpl(
@@ -426,10 +553,18 @@ class __$$ScenarioCreateImplCopyWithImpl<$Res>
             ? _value.description
             : description // ignore: cast_nullable_to_non_nullable
                   as String,
+        purpose: null == purpose
+            ? _value.purpose
+            : purpose // ignore: cast_nullable_to_non_nullable
+                  as String,
         worldState: null == worldState
             ? _value._worldState
             : worldState // ignore: cast_nullable_to_non_nullable
                   as Map<String, dynamic>,
+        isPublic: null == isPublic
+            ? _value.isPublic
+            : isPublic // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -441,7 +576,9 @@ class _$ScenarioCreateImpl implements _ScenarioCreate {
   const _$ScenarioCreateImpl({
     required this.name,
     required this.description,
+    this.purpose = '',
     final Map<String, dynamic> worldState = const {},
+    this.isPublic = false,
   }) : _worldState = worldState;
 
   factory _$ScenarioCreateImpl.fromJson(Map<String, dynamic> json) =>
@@ -451,6 +588,9 @@ class _$ScenarioCreateImpl implements _ScenarioCreate {
   final String name;
   @override
   final String description;
+  @override
+  @JsonKey()
+  final String purpose;
   final Map<String, dynamic> _worldState;
   @override
   @JsonKey()
@@ -461,8 +601,12 @@ class _$ScenarioCreateImpl implements _ScenarioCreate {
   }
 
   @override
+  @JsonKey()
+  final bool isPublic;
+
+  @override
   String toString() {
-    return 'ScenarioCreate(name: $name, description: $description, worldState: $worldState)';
+    return 'ScenarioCreate(name: $name, description: $description, purpose: $purpose, worldState: $worldState, isPublic: $isPublic)';
   }
 
   @override
@@ -473,10 +617,13 @@ class _$ScenarioCreateImpl implements _ScenarioCreate {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.purpose, purpose) || other.purpose == purpose) &&
             const DeepCollectionEquality().equals(
               other._worldState,
               _worldState,
-            ));
+            ) &&
+            (identical(other.isPublic, isPublic) ||
+                other.isPublic == isPublic));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -485,7 +632,9 @@ class _$ScenarioCreateImpl implements _ScenarioCreate {
     runtimeType,
     name,
     description,
+    purpose,
     const DeepCollectionEquality().hash(_worldState),
+    isPublic,
   );
 
   /// Create a copy of ScenarioCreate
@@ -509,7 +658,9 @@ abstract class _ScenarioCreate implements ScenarioCreate {
   const factory _ScenarioCreate({
     required final String name,
     required final String description,
+    final String purpose,
     final Map<String, dynamic> worldState,
+    final bool isPublic,
   }) = _$ScenarioCreateImpl;
 
   factory _ScenarioCreate.fromJson(Map<String, dynamic> json) =
@@ -520,7 +671,11 @@ abstract class _ScenarioCreate implements ScenarioCreate {
   @override
   String get description;
   @override
+  String get purpose;
+  @override
   Map<String, dynamic> get worldState;
+  @override
+  bool get isPublic;
 
   /// Create a copy of ScenarioCreate
   /// with the given fields replaced by the non-null parameter values.
@@ -538,7 +693,9 @@ ScenarioUpdate _$ScenarioUpdateFromJson(Map<String, dynamic> json) {
 mixin _$ScenarioUpdate {
   String? get name => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
+  String? get purpose => throw _privateConstructorUsedError;
   Map<String, dynamic>? get worldState => throw _privateConstructorUsedError;
+  bool? get isPublic => throw _privateConstructorUsedError;
 
   /// Serializes this ScenarioUpdate to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -560,7 +717,9 @@ abstract class $ScenarioUpdateCopyWith<$Res> {
   $Res call({
     String? name,
     String? description,
+    String? purpose,
     Map<String, dynamic>? worldState,
+    bool? isPublic,
   });
 }
 
@@ -581,7 +740,9 @@ class _$ScenarioUpdateCopyWithImpl<$Res, $Val extends ScenarioUpdate>
   $Res call({
     Object? name = freezed,
     Object? description = freezed,
+    Object? purpose = freezed,
     Object? worldState = freezed,
+    Object? isPublic = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -593,10 +754,18 @@ class _$ScenarioUpdateCopyWithImpl<$Res, $Val extends ScenarioUpdate>
                 ? _value.description
                 : description // ignore: cast_nullable_to_non_nullable
                       as String?,
+            purpose: freezed == purpose
+                ? _value.purpose
+                : purpose // ignore: cast_nullable_to_non_nullable
+                      as String?,
             worldState: freezed == worldState
                 ? _value.worldState
                 : worldState // ignore: cast_nullable_to_non_nullable
                       as Map<String, dynamic>?,
+            isPublic: freezed == isPublic
+                ? _value.isPublic
+                : isPublic // ignore: cast_nullable_to_non_nullable
+                      as bool?,
           )
           as $Val,
     );
@@ -615,7 +784,9 @@ abstract class _$$ScenarioUpdateImplCopyWith<$Res>
   $Res call({
     String? name,
     String? description,
+    String? purpose,
     Map<String, dynamic>? worldState,
+    bool? isPublic,
   });
 }
 
@@ -635,7 +806,9 @@ class __$$ScenarioUpdateImplCopyWithImpl<$Res>
   $Res call({
     Object? name = freezed,
     Object? description = freezed,
+    Object? purpose = freezed,
     Object? worldState = freezed,
+    Object? isPublic = freezed,
   }) {
     return _then(
       _$ScenarioUpdateImpl(
@@ -647,10 +820,18 @@ class __$$ScenarioUpdateImplCopyWithImpl<$Res>
             ? _value.description
             : description // ignore: cast_nullable_to_non_nullable
                   as String?,
+        purpose: freezed == purpose
+            ? _value.purpose
+            : purpose // ignore: cast_nullable_to_non_nullable
+                  as String?,
         worldState: freezed == worldState
             ? _value._worldState
             : worldState // ignore: cast_nullable_to_non_nullable
                   as Map<String, dynamic>?,
+        isPublic: freezed == isPublic
+            ? _value.isPublic
+            : isPublic // ignore: cast_nullable_to_non_nullable
+                  as bool?,
       ),
     );
   }
@@ -662,7 +843,9 @@ class _$ScenarioUpdateImpl implements _ScenarioUpdate {
   const _$ScenarioUpdateImpl({
     this.name,
     this.description,
+    this.purpose,
     final Map<String, dynamic>? worldState,
+    this.isPublic,
   }) : _worldState = worldState;
 
   factory _$ScenarioUpdateImpl.fromJson(Map<String, dynamic> json) =>
@@ -672,6 +855,8 @@ class _$ScenarioUpdateImpl implements _ScenarioUpdate {
   final String? name;
   @override
   final String? description;
+  @override
+  final String? purpose;
   final Map<String, dynamic>? _worldState;
   @override
   Map<String, dynamic>? get worldState {
@@ -683,8 +868,11 @@ class _$ScenarioUpdateImpl implements _ScenarioUpdate {
   }
 
   @override
+  final bool? isPublic;
+
+  @override
   String toString() {
-    return 'ScenarioUpdate(name: $name, description: $description, worldState: $worldState)';
+    return 'ScenarioUpdate(name: $name, description: $description, purpose: $purpose, worldState: $worldState, isPublic: $isPublic)';
   }
 
   @override
@@ -695,10 +883,13 @@ class _$ScenarioUpdateImpl implements _ScenarioUpdate {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.purpose, purpose) || other.purpose == purpose) &&
             const DeepCollectionEquality().equals(
               other._worldState,
               _worldState,
-            ));
+            ) &&
+            (identical(other.isPublic, isPublic) ||
+                other.isPublic == isPublic));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -707,7 +898,9 @@ class _$ScenarioUpdateImpl implements _ScenarioUpdate {
     runtimeType,
     name,
     description,
+    purpose,
     const DeepCollectionEquality().hash(_worldState),
+    isPublic,
   );
 
   /// Create a copy of ScenarioUpdate
@@ -731,7 +924,9 @@ abstract class _ScenarioUpdate implements ScenarioUpdate {
   const factory _ScenarioUpdate({
     final String? name,
     final String? description,
+    final String? purpose,
     final Map<String, dynamic>? worldState,
+    final bool? isPublic,
   }) = _$ScenarioUpdateImpl;
 
   factory _ScenarioUpdate.fromJson(Map<String, dynamic> json) =
@@ -742,7 +937,11 @@ abstract class _ScenarioUpdate implements ScenarioUpdate {
   @override
   String? get description;
   @override
+  String? get purpose;
+  @override
   Map<String, dynamic>? get worldState;
+  @override
+  bool? get isPublic;
 
   /// Create a copy of ScenarioUpdate
   /// with the given fields replaced by the non-null parameter values.

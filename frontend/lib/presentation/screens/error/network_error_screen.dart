@@ -57,7 +57,7 @@ class NetworkErrorScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   OutlinedButton.icon(
                     onPressed: () {
-                      context.push('/settings');
+                      context.push('/profile/settings');
                     },
                     icon: const Icon(Icons.settings),
                     label: const Text('서버 설정'),

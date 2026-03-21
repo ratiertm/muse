@@ -5,9 +5,12 @@ import '../../../data/models/character.dart';
 import '../../../data/providers/character_provider.dart';
 import '../../../data/repositories/character_repository.dart';
 import '../../../data/providers/auth_provider.dart';
+import '../../../core/constants/app_constants.dart';
 
 class CharacterCreateScreen extends ConsumerStatefulWidget {
-  const CharacterCreateScreen({super.key});
+  final String? characterId;
+
+  const CharacterCreateScreen({super.key, this.characterId});
 
   @override
   ConsumerState<CharacterCreateScreen> createState() => _CharacterCreateScreenState();
@@ -28,6 +31,40 @@ class _CharacterCreateScreenState extends ConsumerState<CharacterCreateScreen> {
   String? _avatarUrl;
   bool _isGeneratingAvatar = false;
   String? _characterId; // For avatar generation after save
+  bool _isEditMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.characterId != null) {
+      _isEditMode = true;
+      _characterId = widget.characterId;
+      _loadCharacter();
+    }
+  }
+
+  Future<void> _loadCharacter() async {
+    try {
+      final apiClient = ref.read(apiClientProvider);
+      final repository = CharacterRepository(apiClient);
+      final character = await repository.getCharacter(widget.characterId!);
+      setState(() {
+        _nameController.text = character.name;
+        _personalityController.text = character.personality;
+        _speechStyleController.text = character.speechStyle;
+        _backstoryController.text = character.backstory;
+        _scenarioController.text = character.scenario;
+        _firstMessageController.text = character.firstMessage;
+        _exampleDialogueController.text = character.exampleDialogue;
+        _tags.addAll(character.tags);
+        _avatarUrl = character.avatarUrl;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('로딩 실패: $e')));
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -201,6 +238,31 @@ class _CharacterCreateScreenState extends ConsumerState<CharacterCreateScreen> {
       avatarUrl: _avatarUrl,
     );
 
+    if (_isEditMode) {
+      // Update existing character
+      try {
+        final apiClient = ref.read(apiClientProvider);
+        await apiClient.put(
+          '/api/v1/characters/$_characterId',
+          data: character.toJson(),
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('캐릭터가 수정되었습니다')),
+          );
+          ref.invalidate(characterListProvider);
+          context.pop();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('수정 실패: $e')),
+          );
+        }
+      }
+      return;
+    }
+
     await ref.read(characterCreateProvider.notifier).createCharacter(character);
 
     if (mounted) {
@@ -250,7 +312,7 @@ class _CharacterCreateScreenState extends ConsumerState<CharacterCreateScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('새 캐릭터'),
+        title: Text(_isEditMode ? '캐릭터 편집' : '새 캐릭터'),
         actions: [
           TextButton(
             onPressed: createState.isLoading ? null : _saveCharacter,
@@ -280,31 +342,52 @@ class _CharacterCreateScreenState extends ConsumerState<CharacterCreateScreen> {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: _avatarUrl != null
-                        ? NetworkImage(_avatarUrl!)
+                    backgroundImage: AppConstants.resolveAvatarUrl(_avatarUrl) != null
+                        ? NetworkImage(AppConstants.resolveAvatarUrl(_avatarUrl)!)
                         : null,
-                    child: _avatarUrl == null
+                    child: AppConstants.resolveAvatarUrl(_avatarUrl) == null
                         ? const Icon(Icons.person, size: 50)
                         : null,
                   ),
                   const SizedBox(height: 8),
-                  if (_characterId != null)
-                    TextButton.icon(
-                      onPressed: _isGeneratingAvatar ? null : _generateAvatar,
-                      icon: _isGeneratingAvatar
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.auto_awesome),
-                      label: Text(_isGeneratingAvatar ? '생성 중...' : '아바타 생성'),
-                    )
-                  else
-                    const Text(
-                      '캐릭터 저장 후 아바타를 생성할 수 있습니다',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () async {
+                      final controller = TextEditingController(text: _avatarUrl ?? '');
+                      final url = await showDialog<String>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('이미지 URL'),
+                          content: TextField(
+                            controller: controller,
+                            decoration: const InputDecoration(
+                              hintText: 'https://... 이미지 주소 붙여넣기',
+                            ),
+                            autofocus: true,
+                          ),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+                            if (_avatarUrl != null)
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, ''),
+                                child: const Text('삭제', style: TextStyle(color: Colors.red)),
+                              ),
+                            FilledButton(
+                              onPressed: () => Navigator.pop(ctx, controller.text),
+                              child: const Text('확인'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (url != null) {
+                        setState(() {
+                          _avatarUrl = url.isEmpty ? null : url;
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.image),
+                    label: Text(_avatarUrl != null ? '이미지 변경' : '이미지 URL 설정'),
+                  ),
                 ],
               ),
             ),

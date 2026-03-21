@@ -22,7 +22,7 @@ class AppConstants {
     }
   }
   
-  static const int apiTimeoutSeconds = 30;
+  static const int apiTimeoutSeconds = 120;
   
   // Storage Keys
   static const String keyAccessToken = 'access_token';
@@ -36,6 +36,13 @@ class AppConstants {
     {'name': '딸', 'avatar': '👧', 'description': '대학생'},
   ];
   
+  /// Convert relative avatar URL to full URL
+  static String? resolveAvatarUrl(String? url) {
+    if (url == null || url.isEmpty) return null;
+    if (url.startsWith('http')) return url;
+    return '$baseUrl$url';
+  }
+
   // UI Constants
   static const double cardBorderRadius = 16.0;
   static const double messageBubbleRadius = 12.0;

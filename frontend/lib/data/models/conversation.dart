@@ -10,6 +10,7 @@ class Conversation with _$Conversation {
     required String userId,
     String? characterId,
     String? scenarioId,
+    String? personaId,
     @Default(false) bool isGroup,
     required String title,
     required DateTime createdAt,

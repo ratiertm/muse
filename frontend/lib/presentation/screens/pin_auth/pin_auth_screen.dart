@@ -48,13 +48,11 @@ class _PinAuthScreenState extends ConsumerState<PinAuthScreen> {
 
     final pinStr = _pin.join();
 
-    try {
-      await ref.read(authStateProvider.notifier).login(widget.profileName, pinStr);
-      
-      if (mounted) {
-        context.go('/characters');
-      }
-    } catch (e) {
+    final success = await ref.read(authStateProvider.notifier).login(widget.profileName, pinStr);
+
+    if (success && mounted) {
+      context.go('/conversations');
+    } else if (mounted) {
       setState(() {
         _isLoading = false;
         _error = 'PIN이 올바르지 않습니다';

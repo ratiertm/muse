@@ -123,14 +123,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     itemCount: chatState.messages.length + 
                         (chatState.streamingMessage != null ? 1 : 0),
                     itemBuilder: (context, index) {
+                      final charName = characterAsync.valueOrNull?.name;
                       if (index < chatState.messages.length) {
                         return MessageBubble(
                           message: chatState.messages[index],
+                          characterName: charName,
                         );
                       } else {
                         // Streaming message
                         return StreamingMessageBubble(
                           content: chatState.streamingMessage ?? '',
+                          characterName: charName,
                         );
                       }
                     },
@@ -190,7 +193,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         vertical: 12,
                       ),
                     ),
-                    maxLines: null,
+                    minLines: 1,
+                    maxLines: 5,
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _sendMessage(),
                     enabled: !chatState.isLoading,

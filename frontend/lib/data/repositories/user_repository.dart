@@ -10,6 +10,7 @@ class UserRepository {
   const UserRepository(this.apiClient);
 
   Future<TokenResponse> login(String name, String pin) async {
+    print('DEBUG login: name="$name" pin="$pin" url=${apiClient.baseUrl}${ApiEndpoints.login}');
     final response = await apiClient.post<Map<String, dynamic>>(
       ApiEndpoints.login,
       data: {
@@ -17,6 +18,7 @@ class UserRepository {
         'pin': pin,
       },
     );
+    print('DEBUG login response: ${response.statusCode}');
 
     final tokenResponse = TokenResponse.fromJson(response.data!);
 

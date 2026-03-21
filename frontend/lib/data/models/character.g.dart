@@ -9,39 +9,43 @@ part of 'character.dart';
 _$CharacterImpl _$$CharacterImplFromJson(Map<String, dynamic> json) =>
     _$CharacterImpl(
       id: json['id'] as String,
-      userId: json['userId'] as String,
+      userId: json['user_id'] as String,
       name: json['name'] as String,
       personality: json['personality'] as String,
-      speechStyle: json['speechStyle'] as String,
+      speechStyle: json['speech_style'] as String,
       backstory: json['backstory'] as String,
       scenario: json['scenario'] as String? ?? '',
-      firstMessage: json['firstMessage'] as String? ?? '',
-      exampleDialogue: json['exampleDialogue'] as String? ?? '',
+      firstMessage: json['first_message'] as String? ?? '',
+      exampleDialogue: json['example_dialogue'] as String? ?? '',
       tags:
           (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
           const [],
-      avatarUrl: json['avatarUrl'] as String?,
-      modelPreference: json['modelPreference'] as String?,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      avatarUrl: json['avatar_url'] as String?,
+      modelPreference: json['model_preference'] as String?,
+      isPublic: json['is_public'] as bool? ?? false,
+      isMine: json['is_mine'] as bool? ?? false,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
     );
 
 Map<String, dynamic> _$$CharacterImplToJson(_$CharacterImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'userId': instance.userId,
+      'user_id': instance.userId,
       'name': instance.name,
       'personality': instance.personality,
-      'speechStyle': instance.speechStyle,
+      'speech_style': instance.speechStyle,
       'backstory': instance.backstory,
       'scenario': instance.scenario,
-      'firstMessage': instance.firstMessage,
-      'exampleDialogue': instance.exampleDialogue,
+      'first_message': instance.firstMessage,
+      'example_dialogue': instance.exampleDialogue,
       'tags': instance.tags,
-      'avatarUrl': instance.avatarUrl,
-      'modelPreference': instance.modelPreference,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
+      'avatar_url': instance.avatarUrl,
+      'model_preference': instance.modelPreference,
+      'is_public': instance.isPublic,
+      'is_mine': instance.isMine,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
     };
 
 _$CharacterCreateImpl _$$CharacterCreateImplFromJson(
@@ -49,16 +53,17 @@ _$CharacterCreateImpl _$$CharacterCreateImplFromJson(
 ) => _$CharacterCreateImpl(
   name: json['name'] as String,
   personality: json['personality'] as String,
-  speechStyle: json['speechStyle'] as String,
+  speechStyle: json['speech_style'] as String,
   backstory: json['backstory'] as String,
   scenario: json['scenario'] as String? ?? '',
-  firstMessage: json['firstMessage'] as String? ?? '',
-  exampleDialogue: json['exampleDialogue'] as String? ?? '',
+  firstMessage: json['first_message'] as String? ?? '',
+  exampleDialogue: json['example_dialogue'] as String? ?? '',
   tags:
       (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
-  avatarUrl: json['avatarUrl'] as String?,
-  modelPreference: json['modelPreference'] as String?,
+  avatarUrl: json['avatar_url'] as String?,
+  modelPreference: json['model_preference'] as String?,
+  isPublic: json['is_public'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$$CharacterCreateImplToJson(
@@ -66,12 +71,13 @@ Map<String, dynamic> _$$CharacterCreateImplToJson(
 ) => <String, dynamic>{
   'name': instance.name,
   'personality': instance.personality,
-  'speechStyle': instance.speechStyle,
+  'speech_style': instance.speechStyle,
   'backstory': instance.backstory,
   'scenario': instance.scenario,
-  'firstMessage': instance.firstMessage,
-  'exampleDialogue': instance.exampleDialogue,
+  'first_message': instance.firstMessage,
+  'example_dialogue': instance.exampleDialogue,
   'tags': instance.tags,
-  'avatarUrl': instance.avatarUrl,
-  'modelPreference': instance.modelPreference,
+  'avatar_url': instance.avatarUrl,
+  'model_preference': instance.modelPreference,
+  'is_public': instance.isPublic,
 };

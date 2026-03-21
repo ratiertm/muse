@@ -11,7 +11,9 @@ class CharacterRepository {
     List<String>? tags,
     String? search,
   }) async {
-    final queryParams = <String, dynamic>{};
+    final queryParams = <String, dynamic>{
+      'per_page': 100,
+    };
     if (tags != null && tags.isNotEmpty) {
       queryParams['tags'] = tags;
     }

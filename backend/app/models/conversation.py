@@ -33,6 +33,11 @@ class Conversation(Base):
         ForeignKey("scenarios.id", ondelete="SET NULL"),
         nullable=True,
     )
+    persona_id: Mapped[uuid.UUID | None] = mapped_column(
+        GUID,
+        ForeignKey("user_personas.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     is_group: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
@@ -55,6 +60,7 @@ class Conversation(Base):
     user: Mapped["User"] = relationship("User", back_populates="conversations")
     character: Mapped["Character | None"] = relationship("Character", back_populates="conversations")
     scenario: Mapped["Scenario | None"] = relationship("Scenario", back_populates="conversations")
+    persona: Mapped["UserPersona | None"] = relationship("UserPersona")
     messages: Mapped[list["Message"]] = relationship(
         "Message",
         back_populates="conversation",

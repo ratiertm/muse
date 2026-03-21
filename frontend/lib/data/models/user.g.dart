@@ -9,16 +9,16 @@ part of 'user.dart';
 _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
   id: json['id'] as String,
   name: json['name'] as String,
-  avatarUrl: json['avatarUrl'] as String?,
-  createdAt: DateTime.parse(json['createdAt'] as String),
+  avatarUrl: json['avatar_url'] as String?,
+  createdAt: DateTime.parse(json['created_at'] as String),
 );
 
 Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'avatarUrl': instance.avatarUrl,
-      'createdAt': instance.createdAt.toIso8601String(),
+      'avatar_url': instance.avatarUrl,
+      'created_at': instance.createdAt.toIso8601String(),
     };
 
 _$LoginRequestImpl _$$LoginRequestImplFromJson(Map<String, dynamic> json) =>
@@ -32,14 +32,14 @@ Map<String, dynamic> _$$LoginRequestImplToJson(_$LoginRequestImpl instance) =>
 
 _$TokenResponseImpl _$$TokenResponseImplFromJson(Map<String, dynamic> json) =>
     _$TokenResponseImpl(
-      accessToken: json['accessToken'] as String,
-      tokenType: json['tokenType'] as String? ?? 'bearer',
+      accessToken: json['access_token'] as String,
+      tokenType: json['token_type'] as String? ?? 'bearer',
       user: User.fromJson(json['user'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$TokenResponseImplToJson(_$TokenResponseImpl instance) =>
     <String, dynamic>{
-      'accessToken': instance.accessToken,
-      'tokenType': instance.tokenType,
+      'access_token': instance.accessToken,
+      'token_type': instance.tokenType,
       'user': instance.user,
     };

@@ -15,4 +15,7 @@ class ApiEndpoints {
       '$conversations?character_id=$characterId';
   static String scenario(String id) => '$scenarios/$id';
   static String scenarioCharacters(String scenarioId) => '$scenarios/$scenarioId/characters';
+
+  static const String personas = '/api/v1/personas';
+  static String persona(String id) => '$personas/$id';
 }

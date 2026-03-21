@@ -1,7 +1,7 @@
 """Scenario model"""
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
+from sqlalchemy import String, Text, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
@@ -25,7 +25,9 @@ class Scenario(Base):
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
+    purpose: Mapped[str] = mapped_column(Text, default="", nullable=False)
     world_state: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,
@@ -43,5 +45,5 @@ class Scenario(Base):
     conversations: Mapped[list["Conversation"]] = relationship(
         "Conversation",
         back_populates="scenario",
-        cascade="all, delete-orphan",
+        passive_deletes=True,
     )

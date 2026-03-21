@@ -25,6 +25,7 @@ mixin _$Conversation {
   String get userId => throw _privateConstructorUsedError;
   String? get characterId => throw _privateConstructorUsedError;
   String? get scenarioId => throw _privateConstructorUsedError;
+  String? get personaId => throw _privateConstructorUsedError;
   bool get isGroup => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
@@ -52,6 +53,7 @@ abstract class $ConversationCopyWith<$Res> {
     String userId,
     String? characterId,
     String? scenarioId,
+    String? personaId,
     bool isGroup,
     String title,
     DateTime createdAt,
@@ -78,6 +80,7 @@ class _$ConversationCopyWithImpl<$Res, $Val extends Conversation>
     Object? userId = null,
     Object? characterId = freezed,
     Object? scenarioId = freezed,
+    Object? personaId = freezed,
     Object? isGroup = null,
     Object? title = null,
     Object? createdAt = null,
@@ -100,6 +103,10 @@ class _$ConversationCopyWithImpl<$Res, $Val extends Conversation>
             scenarioId: freezed == scenarioId
                 ? _value.scenarioId
                 : scenarioId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            personaId: freezed == personaId
+                ? _value.personaId
+                : personaId // ignore: cast_nullable_to_non_nullable
                       as String?,
             isGroup: null == isGroup
                 ? _value.isGroup
@@ -137,6 +144,7 @@ abstract class _$$ConversationImplCopyWith<$Res>
     String userId,
     String? characterId,
     String? scenarioId,
+    String? personaId,
     bool isGroup,
     String title,
     DateTime createdAt,
@@ -162,6 +170,7 @@ class __$$ConversationImplCopyWithImpl<$Res>
     Object? userId = null,
     Object? characterId = freezed,
     Object? scenarioId = freezed,
+    Object? personaId = freezed,
     Object? isGroup = null,
     Object? title = null,
     Object? createdAt = null,
@@ -184,6 +193,10 @@ class __$$ConversationImplCopyWithImpl<$Res>
         scenarioId: freezed == scenarioId
             ? _value.scenarioId
             : scenarioId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        personaId: freezed == personaId
+            ? _value.personaId
+            : personaId // ignore: cast_nullable_to_non_nullable
                   as String?,
         isGroup: null == isGroup
             ? _value.isGroup
@@ -214,6 +227,7 @@ class _$ConversationImpl implements _Conversation {
     required this.userId,
     this.characterId,
     this.scenarioId,
+    this.personaId,
     this.isGroup = false,
     required this.title,
     required this.createdAt,
@@ -232,6 +246,8 @@ class _$ConversationImpl implements _Conversation {
   @override
   final String? scenarioId;
   @override
+  final String? personaId;
+  @override
   @JsonKey()
   final bool isGroup;
   @override
@@ -243,7 +259,7 @@ class _$ConversationImpl implements _Conversation {
 
   @override
   String toString() {
-    return 'Conversation(id: $id, userId: $userId, characterId: $characterId, scenarioId: $scenarioId, isGroup: $isGroup, title: $title, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Conversation(id: $id, userId: $userId, characterId: $characterId, scenarioId: $scenarioId, personaId: $personaId, isGroup: $isGroup, title: $title, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -257,6 +273,8 @@ class _$ConversationImpl implements _Conversation {
                 other.characterId == characterId) &&
             (identical(other.scenarioId, scenarioId) ||
                 other.scenarioId == scenarioId) &&
+            (identical(other.personaId, personaId) ||
+                other.personaId == personaId) &&
             (identical(other.isGroup, isGroup) || other.isGroup == isGroup) &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.createdAt, createdAt) ||
@@ -273,6 +291,7 @@ class _$ConversationImpl implements _Conversation {
     userId,
     characterId,
     scenarioId,
+    personaId,
     isGroup,
     title,
     createdAt,
@@ -299,6 +318,7 @@ abstract class _Conversation implements Conversation {
     required final String userId,
     final String? characterId,
     final String? scenarioId,
+    final String? personaId,
     final bool isGroup,
     required final String title,
     required final DateTime createdAt,
@@ -316,6 +336,8 @@ abstract class _Conversation implements Conversation {
   String? get characterId;
   @override
   String? get scenarioId;
+  @override
+  String? get personaId;
   @override
   bool get isGroup;
   @override

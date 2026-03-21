@@ -35,11 +35,13 @@ class CharacterService:
         character_id: UUID,
         user_id: UUID | None = None,
     ) -> Character | None:
-        """Get a character by ID, optionally filtered by user_id"""
+        """Get a character by ID. Public characters are accessible by anyone."""
         query = select(Character).where(Character.id == character_id)
         if user_id:
-            query = query.where(Character.user_id == user_id)
-        
+            query = query.where(
+                or_(Character.user_id == user_id, Character.is_public == True)
+            )
+
         result = await db.execute(query)
         return result.scalar_one_or_none()
     
@@ -60,10 +62,11 @@ class CharacterService:
         query = select(Character)
         count_query = select(func.count(Character.id))
         
-        # Filter by user
+        # Filter: public OR owned by user
         if user_id:
-            query = query.where(Character.user_id == user_id)
-            count_query = count_query.where(Character.user_id == user_id)
+            access_filter = or_(Character.user_id == user_id, Character.is_public == True)
+            query = query.where(access_filter)
+            count_query = count_query.where(access_filter)
         
         # Filter by tags (any match)
         if tags:
@@ -102,9 +105,9 @@ class CharacterService:
         user_id: UUID,
         character_data: CharacterUpdate,
     ) -> Character | None:
-        """Update a character"""
-        character = await CharacterService.get_character(db, character_id, user_id)
-        if not character:
+        """Update a character (owner only)"""
+        character = await CharacterService.get_character(db, character_id)
+        if not character or character.user_id != user_id:
             return None
         
         # Update only provided fields
@@ -125,9 +128,9 @@ class CharacterService:
         character_id: UUID,
         user_id: UUID,
     ) -> bool:
-        """Delete a character. Returns True if deleted, False if not found."""
-        character = await CharacterService.get_character(db, character_id, user_id)
-        if not character:
+        """Delete a character (owner only). Returns True if deleted, False if not found."""
+        character = await CharacterService.get_character(db, character_id)
+        if not character or character.user_id != user_id:
             return False
         
         await db.delete(character)

@@ -25,6 +25,7 @@ from app.core.god_agent import GodAgent
 from app.core.auth import get_current_user
 from app.models.user import User
 from app.models.message import MessageRole
+from app.services.persona_service import PersonaService
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +52,9 @@ async def create_group_chat(
     Returns:
         Created conversation
     """
-    # Verify scenario exists and belongs to user
-    scenario = await ScenarioService.get_scenario(db, request.scenario_id)
-    if not scenario or scenario.user_id != current_user.id:
+    # Verify scenario is accessible (own or public)
+    scenario = await ScenarioService.get_scenario(db, request.scenario_id, current_user.id)
+    if not scenario:
         raise HTTPException(status_code=404, detail="Scenario not found")
     
     # Verify all characters exist and belong to user
@@ -76,6 +77,7 @@ async def create_group_chat(
         scenario_id=request.scenario_id,
         character_ids=request.character_ids,
         title=request.title,
+        persona_id=request.persona_id,
     )
     
     logger.info(f"Created group conversation {conversation.id} with {len(request.character_ids)} characters")
@@ -195,145 +197,189 @@ async def send_group_message(
         for msg in history_messages
     ]
     
-    # Initialize God Agent
-    god_agent = GodAgent(llm_client, model="gpt-4o-mini")
-    
-    # === STEP 1: God Agent decides who responds ===
-    responding_character_ids = await god_agent.decide_next_speakers(
-        db=db,
-        scenario=scenario,
-        participants=participants,
-        user_message=request.message,
-        conversation_history=conversation_history,
-    )
-    
-    logger.info(f"God Agent selected {len(responding_character_ids)} characters to respond")
-    
-    # Get responding characters
-    responding_characters = [
-        char for char in participants
-        if char.id in responding_character_ids
-    ]
-    
-    # === STEP 2: Stream responses from each character ===
+    # Load persona if set
+    persona = None
+    if conversation.persona_id:
+        persona = await PersonaService.get_persona(
+            db=db,
+            persona_id=conversation.persona_id,
+            user_id=current_user.id,
+        )
+
+    user_name = persona.name if persona else "User"
+
+    # === FAST GROUP CHAT: Single LLM call with full context ===
+
+    # Full character profiles
+    characters_info = "\n\n".join([
+        f"### {char.name}\n"
+        f"- 성격: {char.personality}\n"
+        f"- 말투: {char.speech_style}\n"
+        f"- 배경: {char.backstory[:200] if char.backstory else '없음'}"
+        for char in participants
+    ])
+
+    # User persona
+    persona_info = ""
+    if persona:
+        persona_info = f"""## 유저 페르소나: {persona.name}
+- 외모: {persona.appearance or '미설정'}
+- 성격: {persona.personality or '미설정'}
+- 설명: {persona.description or '미설정'}
+"""
+
+    # World state
+    world_state = scenario.world_state or {}
+    world_info = ""
+    if world_state:
+        world_info = f"""## 세계 상태
+- 시간축: {world_state.get('timeline', '미설정')}
+- 장소: {world_state.get('location', '미설정')}
+- 현재 시점: {world_state.get('current_time', '미설정')}
+"""
+        facts = world_state.get('world_facts', [])
+        if facts:
+            world_info += "- 주요 사실:\n" + "\n".join(f"  · {f}" for f in facts[:5])
+
+    # Conversation context with character names
+    char_id_to_name = {str(c.id): c.name for c in participants}
+    recent_history = "\n".join([
+        f"[{user_name}]: {msg.content[:200]}" if msg.role.value == 'user'
+        else f"[{char_id_to_name.get(str(msg.character_id), '?')}]: {msg.content[:200]}"
+        for msg in history_messages[-10:]
+    ])
+
+    combined_prompt = f"""You are a God Agent — an omniscient narrator orchestrating a group roleplay.
+
+## 시나리오: {scenario.name}
+{scenario.description[:500] if scenario.description else ''}
+
+{world_info}
+
+{persona_info}
+
+## 참여 캐릭터:
+{characters_info}
+
+## 최근 대화:
+{recent_history}
+
+## 유저({user_name})의 메시지:
+"{request.message}"
+
+---
+
+## 지시사항 (God Agent로서):
+1. 각 캐릭터가 원작 애니/만화/소설에서 말하는 것처럼 대사를 작성할 것
+   - 성격이 나쁘면 나쁘게, 거칠면 거칠게, 겁쟁이면 겁먹은 듯이
+   - 캐릭터 고유의 말버릇, 구두점, 감탄사를 반드시 사용
+   - 캐릭터의 감정과 태도가 대사에 드러나야 함
+2. 유저({user_name})를 페르소나 이름으로 부를 것
+3. 세계 상태와 시나리오 배경에 맞게 상황을 조율
+4. 모든 캐릭터가 반응할 필요 없음 — 상황에 맞는 캐릭터만 대답 (최소 1명)
+5. 각 캐릭터는 1인칭으로, 1-3문장 짧게 말할 것
+6. 시작에 [상황 나레이션]을 한 줄 넣을 것
+7. 한국어로 작성
+
+## 출력 형식:
+[상황 나레이션]
+
+**캐릭터이름**: 대사
+
+**캐릭터이름**: 대사"""
+
     async def event_generator():
-        """Generate SSE events for each character's response"""
-        
-        for character in responding_characters:
-            logger.info(f"Generating response for {character.name}")
-            
-            # Generate briefing for this character
-            briefing = await god_agent.brief_character(
-                db=db,
-                character=character,
-                scenario=scenario,
-                user_message=request.message,
-                conversation_history=conversation_history,
-            )
-            
-            # Build system prompt with briefing
-            system_prompt = PromptBuilder.build_prompt_with_briefing(
-                character=character,
-                briefing=briefing,
-                user_name="User",
-            )
-            
-            # Build context messages
-            context_messages = ContextManager.prepare_context_messages(
-                system_prompt=system_prompt,
-                conversation_history=history_messages,
-                max_history_tokens=3000,
-            )
-            
-            # Add current user message
-            context_messages.append({"role": "user", "content": request.message})
-            
-            # Stream character response
-            character_response = ""
-            
-            try:
-                # Send character header event
-                header_event = GroupChatStreamEvent(
-                    character_id=character.id,
-                    character_name=character.name,
-                    chunk="",
+        """Single LLM call, then parse and send per-character events"""
+        import re
+
+        # Collect full response first
+        full_response = ""
+        try:
+            async for chunk in llm_client.stream(
+                messages=[{"role": "user", "content": combined_prompt}],
+                model="claude-sonnet-4-20250514",
+                temperature=0.7,
+                max_tokens=1000,
+            ):
+                full_response += chunk
+
+            # Clean bkit artifacts
+            for marker in ["─────", "📊 bkit", "✅ Used:", "⏭️ Not Used:"]:
+                idx = full_response.find(marker)
+                if idx > 0:
+                    full_response = full_response[:idx].rstrip()
+
+            # Extract [narration] — send as system message
+            narration_match = re.search(r'\[([^\]]+)\]', full_response)
+            if narration_match:
+                narration = narration_match.group(0)
+                narration_event = GroupChatStreamEvent(
+                    character_id=None,
+                    character_name="narrator",
+                    chunk=narration,
                     is_done=False,
                 )
-                yield f"data: {header_event.model_dump_json()}\n\n"
-                
-                # Stream response chunks
-                async for chunk in llm_client.stream(
-                    messages=context_messages,
-                    model="claude-sonnet-4-20250514",  # Use Claude for character responses
-                    temperature=0.7,
-                    max_tokens=1000,
-                ):
-                    character_response += chunk
-                    
-                    # Send chunk event
-                    chunk_event = GroupChatStreamEvent(
-                        character_id=character.id,
-                        character_name=character.name,
-                        chunk=chunk,
+                yield f"data: {narration_event.model_dump_json()}\n\n"
+
+            # Parse per-character responses: **이름**: 대사
+            char_map = {char.name: char for char in participants}
+            pattern = r'\*\*(.+?)\*\*:\s*(.+?)(?=\n\*\*|\n\n\*\*|$)'
+            matches = re.findall(pattern, full_response, re.DOTALL)
+
+            for char_name, dialogue in matches:
+                char_name = char_name.strip()
+                dialogue = dialogue.strip()
+
+                if not dialogue:
+                    continue
+
+                # Find matching character
+                char = char_map.get(char_name)
+                if not char:
+                    # Fuzzy match
+                    for name, c in char_map.items():
+                        if name in char_name or char_name in name:
+                            char = c
+                            break
+
+                if char:
+                    # Send header
+                    header = GroupChatStreamEvent(
+                        character_id=char.id,
+                        character_name=char.name,
+                        chunk="",
                         is_done=False,
                     )
-                    yield f"data: {chunk_event.model_dump_json()}\n\n"
-                
-                # Save character message
-                await ChatService.save_group_message(
-                    db=db,
-                    conversation_id=conversation_id,
-                    role=MessageRole.ASSISTANT,
-                    content=character_response,
-                    character_id=character.id,
-                )
-                
-                # Schedule God Agent update as background task
-                async def update_god_state():
-                    """Background task to update God Agent state"""
-                    try:
-                        from app.dependencies import get_db
-                        async for bg_db in get_db():
-                            bg_god_agent = GodAgent(llm_client, model="gpt-4o-mini")
-                            
-                            # Re-fetch scenario and character
-                            bg_scenario = await ScenarioService.get_scenario(bg_db, scenario.id)
-                            bg_character = await CharacterService.get_character(bg_db, character.id)
-                            bg_participants = await ChatService.get_group_participants(bg_db, conversation_id)
-                            
-                            if bg_scenario and bg_character:
-                                await bg_god_agent.observe_and_update_group(
-                                    db=bg_db,
-                                    speaker_character=bg_character,
-                                    scenario=bg_scenario,
-                                    user_message=request.message,
-                                    assistant_response=character_response,
-                                    present_characters=bg_participants,
-                                )
-                                logger.info(f"God Agent group state updated for {character.name}")
-                            
-                            break
-                    except Exception as e:
-                        logger.error(f"Failed to update God Agent group state: {e}")
-                
-                background_tasks.add_task(update_god_state)
-                
-                logger.info(f"Completed response for {character.name}")
-                
-            except Exception as e:
-                logger.error(f"Error generating response for {character.name}: {e}")
+                    yield f"data: {header.model_dump_json()}\n\n"
 
-                error_event = GroupChatStreamEvent(
-                    character_id=character.id,
-                    character_name=character.name,
-                    chunk=f"\n\n[{character.name}의 응답 생성 중 오류가 발생했습니다]",
-                    is_done=False,
-                )
-                yield f"data: {error_event.model_dump_json()}\n\n"
-        
-        # Send final done event
-        done_event = GroupChatStreamEvent(is_done=True)
-        yield f"data: {done_event.model_dump_json()}\n\n"
+                    # Send dialogue
+                    msg_event = GroupChatStreamEvent(
+                        character_id=char.id,
+                        character_name=char.name,
+                        chunk=dialogue,
+                        is_done=False,
+                    )
+                    yield f"data: {msg_event.model_dump_json()}\n\n"
+
+                    # Save to DB
+                    await ChatService.save_group_message(
+                        db=db,
+                        conversation_id=conversation_id,
+                        role=MessageRole.ASSISTANT,
+                        content=dialogue,
+                        character_id=char.id,
+                    )
+
+            yield "data: " + GroupChatStreamEvent(is_done=True).model_dump_json() + "\n\n"
+
+        except Exception as e:
+            logger.error(f"Group chat error: {e}")
+            error_event = GroupChatStreamEvent(
+                chunk=f"\n\n[응답 생성 중 오류가 발생했습니다]",
+                is_done=False,
+            )
+            yield f"data: {error_event.model_dump_json()}\n\n"
+            yield "data: " + GroupChatStreamEvent(is_done=True).model_dump_json() + "\n\n"
     
     return StreamingResponse(
         event_generator(),

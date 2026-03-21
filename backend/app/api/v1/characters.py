@@ -65,9 +65,16 @@ async def list_characters(
         offset=pagination.offset,
         limit=pagination.per_page,
     )
-    
+
+    # Add is_mine flag
+    items = []
+    for c in characters:
+        resp = CharacterResponse.model_validate(c)
+        resp.is_mine = (c.user_id == current_user.id)
+        items.append(resp)
+
     return PaginatedResponse.create(
-        items=characters,
+        items=items,
         total=total,
         page=pagination.page,
         per_page=pagination.per_page,

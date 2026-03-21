@@ -87,6 +87,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       body: ListView(
         children: [
+          // Persona Section
+          _buildSectionHeader('페르소나'),
+          ListTile(
+            leading: const Icon(Icons.face),
+            title: const Text('내 페르소나'),
+            subtitle: const Text('시나리오에서 사용할 캐릭터'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/personas'),
+          ),
+
+          const Divider(),
+
           // Theme Section
           _buildSectionHeader('테마'),
           _buildThemeTile(context, themeMode),
@@ -285,9 +297,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
     
     if (confirmed == true && context.mounted) {
-      await ref.read(authProvider.notifier).logout();
+      await ref.read(authStateProvider.notifier).logout();
       if (context.mounted) {
-        context.go('/profiles');
+        context.go('/profile-selection');
         SnackbarUtils.showSuccess(context, '로그아웃되었습니다');
       }
     }

@@ -1,6 +1,6 @@
 """Scenario service with CRUD business logic"""
 from uuid import UUID
-from sqlalchemy import select, func, delete
+from sqlalchemy import select, func, delete, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
@@ -38,11 +38,14 @@ class ScenarioService:
         scenario_id: UUID,
         user_id: UUID | None = None,
     ) -> Scenario | None:
-        """Get a scenario by ID, optionally filtered by user_id"""
+        """Get a scenario by ID. Public scenarios are accessible by anyone."""
         query = select(Scenario).where(Scenario.id == scenario_id)
         if user_id:
-            query = query.where(Scenario.user_id == user_id)
-        
+            # Can access own scenarios + public scenarios
+            query = query.where(
+                or_(Scenario.user_id == user_id, Scenario.is_public == True)
+            )
+
         result = await db.execute(query)
         return result.scalar_one_or_none()
     
@@ -57,14 +60,15 @@ class ScenarioService:
         Get scenarios with optional filtering and pagination
         Returns: (scenarios, total_count)
         """
-        # Base query
+        # Base query: show public + own scenarios
         query = select(Scenario)
         count_query = select(func.count(Scenario.id))
-        
-        # Filter by user
+
+        # Filter: public OR owned by user
         if user_id:
-            query = query.where(Scenario.user_id == user_id)
-            count_query = count_query.where(Scenario.user_id == user_id)
+            access_filter = or_(Scenario.user_id == user_id, Scenario.is_public == True)
+            query = query.where(access_filter)
+            count_query = count_query.where(access_filter)
         
         # Get total count
         total_result = await db.execute(count_query)
@@ -86,9 +90,9 @@ class ScenarioService:
         user_id: UUID,
         scenario_data: ScenarioUpdate,
     ) -> Scenario | None:
-        """Update a scenario"""
-        scenario = await ScenarioService.get_scenario(db, scenario_id, user_id)
-        if not scenario:
+        """Update a scenario (owner only)"""
+        scenario = await ScenarioService.get_scenario(db, scenario_id)
+        if not scenario or scenario.user_id != user_id:
             return None
         
         # Update only provided fields
@@ -138,9 +142,9 @@ class ScenarioService:
         scenario_id: UUID,
         user_id: UUID,
     ) -> bool:
-        """Delete a scenario. Returns True if deleted, False if not found."""
-        scenario = await ScenarioService.get_scenario(db, scenario_id, user_id)
-        if not scenario:
+        """Delete a scenario (owner only). Returns True if deleted, False if not found."""
+        scenario = await ScenarioService.get_scenario(db, scenario_id)
+        if not scenario or scenario.user_id != user_id:
             return False
         
         await db.delete(scenario)
@@ -160,16 +164,16 @@ class ScenarioService:
         Add a character to a scenario.
         Returns True if added, False if scenario/character not found or already exists.
         """
-        # Verify scenario belongs to user
+        # Verify scenario is accessible (own or public)
         scenario = await ScenarioService.get_scenario(db, scenario_id, user_id)
         if not scenario:
             return False
-        
-        # Verify character belongs to user
+
+        # Verify character is accessible (own or public)
         result = await db.execute(
             select(Character).where(
                 Character.id == character_id,
-                Character.user_id == user_id,
+                or_(Character.user_id == user_id, Character.is_public == True),
             )
         )
         character = result.scalar_one_or_none()

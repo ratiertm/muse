@@ -7,6 +7,8 @@ import '../../../data/providers/scenario_provider.dart';
 import '../../../data/providers/character_provider.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/repositories/scenario_repository.dart';
+import '../../../core/api/api_endpoints.dart';
+import '../../../core/constants/app_constants.dart';
 
 class ScenarioEditScreen extends ConsumerStatefulWidget {
   final String? scenarioId;
@@ -20,10 +22,12 @@ class ScenarioEditScreen extends ConsumerStatefulWidget {
 class _ScenarioEditScreenState extends ConsumerState<ScenarioEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _purposeController = TextEditingController();
   final _descriptionController = TextEditingController();
 
   List<Character> _scenarioCharacters = [];
   bool _isLoading = false;
+  bool _isPublic = false;
 
   @override
   void initState() {
@@ -47,8 +51,10 @@ class _ScenarioEditScreenState extends ConsumerState<ScenarioEditScreen> {
 
       setState(() {
         _nameController.text = scenario.name;
+        _purposeController.text = scenario.purpose;
         _descriptionController.text = scenario.description;
         _scenarioCharacters = characters;
+        _isPublic = scenario.isPublic;
         _isLoading = false;
       });
     } catch (e) {
@@ -82,7 +88,9 @@ class _ScenarioEditScreenState extends ConsumerState<ScenarioEditScreen> {
           widget.scenarioId!,
           ScenarioUpdate(
             name: _nameController.text,
+            purpose: _purposeController.text,
             description: _descriptionController.text,
+            isPublic: _isPublic,
           ),
         );
       } else {
@@ -90,7 +98,9 @@ class _ScenarioEditScreenState extends ConsumerState<ScenarioEditScreen> {
         await repository.createScenario(
           ScenarioCreate(
             name: _nameController.text,
+            purpose: _purposeController.text,
             description: _descriptionController.text,
+            isPublic: _isPublic,
           ),
         );
       }
@@ -142,10 +152,10 @@ class _ScenarioEditScreenState extends ConsumerState<ScenarioEditScreen> {
                     final character = availableCharacters[index];
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundImage: character.avatarUrl != null
-                            ? NetworkImage(character.avatarUrl!)
+                        backgroundImage: AppConstants.resolveAvatarUrl(character.avatarUrl) != null
+                            ? NetworkImage(AppConstants.resolveAvatarUrl(character.avatarUrl)!)
                             : null,
-                        child: character.avatarUrl == null
+                        child: AppConstants.resolveAvatarUrl(character.avatarUrl) == null
                             ? const Icon(Icons.person)
                             : null,
                       ),
@@ -218,9 +228,115 @@ class _ScenarioEditScreenState extends ConsumerState<ScenarioEditScreen> {
     }
   }
 
+  Future<void> _deleteScenario() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('시나리오 삭제'),
+        content: const Text('이 시나리오를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final apiClient = ref.read(apiClientProvider);
+      final repository = ScenarioRepository(apiClient);
+      await repository.deleteScenario(widget.scenarioId!);
+      ref.invalidate(scenarioListProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('삭제되었습니다')));
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('삭제 실패: $e')));
+      }
+    }
+  }
+
+  Future<void> _autoGenerate() async {
+    final sourceWorkController = TextEditingController();
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('원작에서 시나리오 생성'),
+        content: TextField(
+          controller: sourceWorkController,
+          decoration: const InputDecoration(
+            labelText: '작품명',
+            hintText: '예: 전지적독자시점, 나루토',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (sourceWorkController.text.isNotEmpty) {
+                Navigator.pop(context, sourceWorkController.text);
+              }
+            },
+            child: const Text('생성'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == null || !mounted) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final apiClient = ref.read(apiClientProvider);
+      final response = await apiClient.post<Map<String, dynamic>>(
+        '${ApiEndpoints.scenarios}/auto-generate',
+        data: {'source_work': result},
+      );
+
+      final data = response.data!;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      // 이미 백엔드에서 저장됨 → 목록 갱신 후 편집 화면으로 이동
+      ref.invalidate(scenarioListProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('시나리오 + 캐릭터가 생성되었습니다!')),
+        );
+        // 생성된 시나리오 편집 화면으로 이동
+        final scenarioId = data['id'] as String;
+        context.pop(); // 현재 새 시나리오 화면 닫기
+        context.push('/scenarios/edit/$scenarioId');
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('생성 실패: $e')),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
+    _purposeController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
@@ -231,6 +347,11 @@ class _ScenarioEditScreenState extends ConsumerState<ScenarioEditScreen> {
       appBar: AppBar(
         title: Text(widget.scenarioId != null ? '시나리오 편집' : '새 시나리오'),
         actions: [
+          if (widget.scenarioId != null)
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: _isLoading ? null : _deleteScenario,
+            ),
           TextButton(
             onPressed: _isLoading ? null : _save,
             child: const Text('저장'),
@@ -244,6 +365,17 @@ class _ScenarioEditScreenState extends ConsumerState<ScenarioEditScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  if (widget.scenarioId == null) ...[
+                    OutlinedButton.icon(
+                      onPressed: _isLoading ? null : _autoGenerate,
+                      icon: const Icon(Icons.auto_awesome),
+                      label: const Text('원작에서 자동 생성'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                   TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(
@@ -259,18 +391,42 @@ class _ScenarioEditScreenState extends ConsumerState<ScenarioEditScreen> {
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    controller: _purposeController,
+                    decoration: const InputDecoration(
+                      labelText: '목적',
+                      hintText: '예: DIO를 처치하고 가족을 구하라',
+                      prefixIcon: Icon(Icons.flag),
+                    ),
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
                     controller: _descriptionController,
                     decoration: const InputDecoration(
                       labelText: '설명 *',
                       hintText: '시나리오 배경과 상황',
+                      alignLabelWithHint: true,
                     ),
-                    maxLines: 5,
+                    minLines: 3,
+                    maxLines: 8,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return '설명을 입력하세요';
                       }
                       return null;
                     },
+                  ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('공용으로 공유'),
+                    subtitle: const Text('다른 유저도 이 시나리오를 사용할 수 있습니다'),
+                    value: _isPublic,
+                    onChanged: (value) {
+                      setState(() {
+                        _isPublic = value;
+                      });
+                    },
+                    contentPadding: EdgeInsets.zero,
                   ),
                   const SizedBox(height: 24),
                   if (widget.scenarioId != null) ...[
@@ -298,10 +454,10 @@ class _ScenarioEditScreenState extends ConsumerState<ScenarioEditScreen> {
                       ..._scenarioCharacters.map((character) {
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundImage: character.avatarUrl != null
-                                ? NetworkImage(character.avatarUrl!)
+                            backgroundImage: AppConstants.resolveAvatarUrl(character.avatarUrl) != null
+                                ? NetworkImage(AppConstants.resolveAvatarUrl(character.avatarUrl)!)
                                 : null,
-                            child: character.avatarUrl == null
+                            child: AppConstants.resolveAvatarUrl(character.avatarUrl) == null
                                 ? const Icon(Icons.person)
                                 : null,
                           ),

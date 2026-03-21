@@ -34,6 +34,7 @@ class ConversationResponse(BaseModel):
     user_id: UUID
     character_id: UUID | None
     scenario_id: UUID | None
+    persona_id: UUID | None = None
     is_group: bool
     title: str
     created_at: datetime
@@ -54,6 +55,7 @@ class GroupChatCreateRequest(BaseModel):
     scenario_id: UUID = Field(..., description="Scenario ID for God Agent orchestration")
     character_ids: list[UUID] = Field(..., min_length=2, description="List of character IDs (minimum 2)")
     title: str = Field(..., min_length=1, max_length=500, description="Group chat title")
+    persona_id: UUID | None = Field(None, description="User persona ID for personalized interactions")
 
 
 class GroupChatMessageRequest(BaseModel):

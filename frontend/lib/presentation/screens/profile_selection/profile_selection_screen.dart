@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
@@ -14,8 +16,8 @@ class ProfileSelectionScreen extends ConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const Spacer(),
               const Text(
                 'Muse',
                 style: TextStyle(
@@ -47,6 +49,13 @@ class ProfileSelectionScreen extends ConsumerWidget {
                   ),
                 );
               }),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: () => SystemNavigator.pop(),
+                icon: const Icon(Icons.exit_to_app, color: Colors.grey),
+                label: const Text('나가기', style: TextStyle(color: Colors.grey)),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),

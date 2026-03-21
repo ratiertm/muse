@@ -6,11 +6,13 @@ import '../../data/models/message.dart';
 class MessageBubble extends StatelessWidget {
   final Message message;
   final bool isStreaming;
+  final String? characterName;
 
   const MessageBubble({
     super.key,
     required this.message,
     this.isStreaming = false,
+    this.characterName,
   });
 
   @override
@@ -24,7 +26,7 @@ class MessageBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser) ...[
-            _Avatar(isUser: false),
+            _Avatar(isUser: false, label: characterName),
             const SizedBox(width: 8),
           ],
           Flexible(
@@ -67,11 +69,14 @@ class MessageBubble extends StatelessWidget {
 
 class _Avatar extends StatelessWidget {
   final bool isUser;
+  final String? label;
 
-  const _Avatar({required this.isUser});
+  const _Avatar({required this.isUser, this.label});
 
   @override
   Widget build(BuildContext context) {
+    final displayLabel = isUser ? '나' : (label != null ? label![0] : 'AI');
+
     return Container(
       width: 36,
       height: 36,
@@ -81,7 +86,7 @@ class _Avatar extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          isUser ? '나' : 'AI',
+          displayLabel,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
@@ -95,10 +100,12 @@ class _Avatar extends StatelessWidget {
 
 class StreamingMessageBubble extends StatelessWidget {
   final String content;
+  final String? characterName;
 
   const StreamingMessageBubble({
     super.key,
     required this.content,
+    this.characterName,
   });
 
   @override
@@ -109,7 +116,7 @@ class StreamingMessageBubble extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _Avatar(isUser: false),
+          _Avatar(isUser: false, label: characterName),
           const SizedBox(width: 8),
           Flexible(
             child: Container(

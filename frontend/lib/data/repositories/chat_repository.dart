@@ -15,7 +15,10 @@ class ChatRepository {
         ? ApiEndpoints.conversationsByCharacter(characterId)
         : ApiEndpoints.conversations;
 
-    final response = await apiClient.get<Map<String, dynamic>>(endpoint);
+    final response = await apiClient.get<Map<String, dynamic>>(
+      endpoint,
+      queryParameters: {'per_page': 100},
+    );
 
     final data = response.data!;
     final items = (data['items'] as List)

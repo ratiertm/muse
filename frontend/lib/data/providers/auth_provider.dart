@@ -41,13 +41,15 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     }
   }
 
-  Future<void> login(String name, String pin) async {
+  Future<bool> login(String name, String pin) async {
     state = const AsyncValue.loading();
     try {
       final tokenResponse = await _userRepository.login(name, pin);
       state = AsyncValue.data(tokenResponse.user);
+      return true;
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+      return false;
     }
   }
 

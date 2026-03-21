@@ -20,7 +20,7 @@ class CharacterBase(BaseModel):
 
 class CharacterCreate(CharacterBase):
     """Schema for creating a new character"""
-    pass
+    is_public: bool = False
 
 
 class CharacterUpdate(BaseModel):
@@ -41,9 +41,11 @@ class CharacterResponse(CharacterBase):
     """Schema for character responses"""
     id: UUID
     user_id: UUID
+    is_public: bool = False
+    is_mine: bool = False
     created_at: datetime
     updated_at: datetime
-    
+
     model_config = {"from_attributes": True}
 
 

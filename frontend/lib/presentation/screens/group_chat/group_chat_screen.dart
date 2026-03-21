@@ -5,6 +5,7 @@ import '../../../data/models/message.dart';
 import '../../../data/providers/group_chat_provider.dart';
 import '../../../data/providers/chat_provider.dart';
 import '../../widgets/message_bubble.dart';
+import '../../../core/constants/app_constants.dart';
 
 class GroupChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -137,6 +138,19 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
           });
 
           _scrollToBottom();
+        } else if (event.characterName == 'narrator' && event.chunk != null) {
+          // Narrator event — add as system message
+          setState(() {
+            _messages.add(Message(
+              id: 'narrator-${DateTime.now().millisecondsSinceEpoch}',
+              conversationId: widget.conversationId,
+              role: MessageRole.assistant,
+              content: event.chunk!,
+              characterId: null,
+              createdAt: DateTime.now(),
+            ));
+          });
+          _scrollToBottom();
         } else if (event.characterId != null) {
           // Update streaming message for this character
           setState(() {
@@ -199,31 +213,56 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
           ],
         ),
         actions: [
-          // Participant avatars
-          SizedBox(
-            height: 40,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              shrinkWrap: true,
-              itemCount: _participants.length,
-              itemBuilder: (context, index) {
-                final participant = _participants[index];
-                return Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: CircleAvatar(
-                    radius: 16,
-                    backgroundImage: participant.avatarUrl != null
-                        ? NetworkImage(participant.avatarUrl!)
-                        : null,
-                    child: participant.avatarUrl == null
-                        ? Text(participant.name[0])
-                        : null,
-                  ),
-                );
-              },
+          // Participant avatars - show up to 4 with overlap
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: SizedBox(
+              width: _participants.length * 28.0 + 8,
+              height: 36,
+              child: Stack(
+                children: [
+                  for (int i = 0; i < _participants.length && i < 4; i++)
+                    Positioned(
+                      left: i * 24.0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.surface,
+                            width: 2,
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          radius: 14,
+                          backgroundColor: _getCharacterColor(_participants[i].id),
+                          backgroundImage: AppConstants.resolveAvatarUrl(_participants[i].avatarUrl) != null
+                              ? NetworkImage(AppConstants.resolveAvatarUrl(_participants[i].avatarUrl)!)
+                              : null,
+                          child: AppConstants.resolveAvatarUrl(_participants[i].avatarUrl) == null
+                              ? Text(
+                                  _participants[i].name[0],
+                                  style: const TextStyle(fontSize: 11, color: Colors.white),
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                  if (_participants.length > 4)
+                    Positioned(
+                      left: 4 * 24.0,
+                      child: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: Colors.grey,
+                        child: Text(
+                          '+${_participants.length - 4}',
+                          style: const TextStyle(fontSize: 10, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(width: 8),
         ],
       ),
       body: Column(
@@ -238,48 +277,74 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                 if (index < _messages.length) {
                   // Regular message
                   final message = _messages[index];
+                  final isUser = message.role == MessageRole.user;
                   final character = _getCharacter(message.characterId);
+
+                  // Narrator message (system narration)
+                  if (message.characterId == null && !isUser && message.content.startsWith('[')) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Center(
+                        child: Text(
+                          message.content,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey[600],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  }
+
+                  // Display name: user shows "나", characters show their name
+                  final displayName = isUser ? '나' : (character?.name ?? '???');
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Column(
-                      crossAxisAlignment: message.role == MessageRole.user
+                      crossAxisAlignment: isUser
                           ? CrossAxisAlignment.end
                           : CrossAxisAlignment.start,
                       children: [
-                        if (character != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CircleAvatar(
-                                  radius: 12,
-                                  backgroundColor: _getCharacterColor(character.id),
-                                  backgroundImage: character.avatarUrl != null
-                                      ? NetworkImage(character.avatarUrl!)
-                                      : null,
-                                  child: character.avatarUrl == null
-                                      ? Text(
-                                          character.name[0],
-                                          style: const TextStyle(fontSize: 10),
-                                        )
-                                      : null,
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircleAvatar(
+                                radius: 12,
+                                backgroundColor: isUser
+                                    ? Theme.of(context).colorScheme.primary
+                                    : _getCharacterColor(character?.id ?? ''),
+                                backgroundImage: (!isUser && AppConstants.resolveAvatarUrl(character?.avatarUrl) != null)
+                                    ? NetworkImage(AppConstants.resolveAvatarUrl(character!.avatarUrl)!)
+                                    : null,
+                                child: (isUser || AppConstants.resolveAvatarUrl(character?.avatarUrl) == null)
+                                    ? Text(
+                                        displayName[0],
+                                        style: const TextStyle(fontSize: 10, color: Colors.white),
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                displayName,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: isUser
+                                      ? Theme.of(context).colorScheme.primary
+                                      : _getCharacterColor(character?.id ?? ''),
                                 ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  character.name,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: _getCharacterColor(character.id),
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
+                        ),
                         MessageBubble(
                           message: message,
+                          characterName: character?.name,
                         ),
                       ],
                     ),
@@ -305,10 +370,10 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                                 CircleAvatar(
                                   radius: 12,
                                   backgroundColor: _getCharacterColor(character.id),
-                                  backgroundImage: character.avatarUrl != null
-                                      ? NetworkImage(character.avatarUrl!)
+                                  backgroundImage: AppConstants.resolveAvatarUrl(character.avatarUrl) != null
+                                      ? NetworkImage(AppConstants.resolveAvatarUrl(character.avatarUrl)!)
                                       : null,
-                                  child: character.avatarUrl == null
+                                  child: AppConstants.resolveAvatarUrl(character.avatarUrl) == null
                                       ? Text(
                                           character.name[0],
                                           style: const TextStyle(fontSize: 10),
@@ -336,6 +401,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                             characterId: characterId,
                             createdAt: DateTime.now(),
                           ),
+                          characterName: character?.name,
                           isStreaming: true,
                         ),
                       ],
@@ -368,7 +434,8 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                       hintText: '메시지 입력...',
                       border: OutlineInputBorder(),
                     ),
-                    maxLines: null,
+                    minLines: 1,
+                    maxLines: 5,
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _sendMessage(),
                     enabled: !_isStreaming,

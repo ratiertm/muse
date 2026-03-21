@@ -37,14 +37,20 @@ class GroupChatRepository {
     required String scenarioId,
     required List<String> characterIds,
     required String title,
+    String? personaId,
   }) async {
+    final data = <String, dynamic>{
+      'scenario_id': scenarioId,
+      'character_ids': characterIds,
+      'title': title,
+    };
+    if (personaId != null) {
+      data['persona_id'] = personaId;
+    }
+
     final response = await apiClient.post<Map<String, dynamic>>(
       ApiEndpoints.groupChat,
-      data: {
-        'scenario_id': scenarioId,
-        'character_ids': characterIds,
-        'title': title,
-      },
+      data: data,
     );
 
     return Conversation.fromJson(response.data!);

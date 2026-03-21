@@ -255,17 +255,19 @@ class ChatService:
         scenario_id: UUID,
         character_ids: list[UUID],
         title: str,
+        persona_id: UUID | None = None,
     ) -> Conversation:
         """
         Create a new group conversation with multiple characters
-        
+
         Args:
             db: Database session
             user_id: User creating the conversation
             scenario_id: Scenario for God Agent orchestration
             character_ids: List of character UUIDs to include
             title: Group chat title
-        
+            persona_id: Optional user persona ID for personalized interactions
+
         Returns:
             Created conversation
         """
@@ -276,6 +278,7 @@ class ChatService:
             scenario_id=scenario_id,
             is_group=True,
             title=title,
+            persona_id=persona_id,
         )
         db.add(conversation)
         await db.flush()  # Get conversation ID

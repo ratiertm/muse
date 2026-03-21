@@ -33,6 +33,8 @@ mixin _$Character {
   List<String> get tags => throw _privateConstructorUsedError;
   String? get avatarUrl => throw _privateConstructorUsedError;
   String? get modelPreference => throw _privateConstructorUsedError;
+  bool get isPublic => throw _privateConstructorUsedError;
+  bool get isMine => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
 
@@ -64,6 +66,8 @@ abstract class $CharacterCopyWith<$Res> {
     List<String> tags,
     String? avatarUrl,
     String? modelPreference,
+    bool isPublic,
+    bool isMine,
     DateTime createdAt,
     DateTime updatedAt,
   });
@@ -96,6 +100,8 @@ class _$CharacterCopyWithImpl<$Res, $Val extends Character>
     Object? tags = null,
     Object? avatarUrl = freezed,
     Object? modelPreference = freezed,
+    Object? isPublic = null,
+    Object? isMine = null,
     Object? createdAt = null,
     Object? updatedAt = null,
   }) {
@@ -149,6 +155,14 @@ class _$CharacterCopyWithImpl<$Res, $Val extends Character>
                 ? _value.modelPreference
                 : modelPreference // ignore: cast_nullable_to_non_nullable
                       as String?,
+            isPublic: null == isPublic
+                ? _value.isPublic
+                : isPublic // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isMine: null == isMine
+                ? _value.isMine
+                : isMine // ignore: cast_nullable_to_non_nullable
+                      as bool,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -185,6 +199,8 @@ abstract class _$$CharacterImplCopyWith<$Res>
     List<String> tags,
     String? avatarUrl,
     String? modelPreference,
+    bool isPublic,
+    bool isMine,
     DateTime createdAt,
     DateTime updatedAt,
   });
@@ -216,6 +232,8 @@ class __$$CharacterImplCopyWithImpl<$Res>
     Object? tags = null,
     Object? avatarUrl = freezed,
     Object? modelPreference = freezed,
+    Object? isPublic = null,
+    Object? isMine = null,
     Object? createdAt = null,
     Object? updatedAt = null,
   }) {
@@ -269,6 +287,14 @@ class __$$CharacterImplCopyWithImpl<$Res>
             ? _value.modelPreference
             : modelPreference // ignore: cast_nullable_to_non_nullable
                   as String?,
+        isPublic: null == isPublic
+            ? _value.isPublic
+            : isPublic // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isMine: null == isMine
+            ? _value.isMine
+            : isMine // ignore: cast_nullable_to_non_nullable
+                  as bool,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -298,6 +324,8 @@ class _$CharacterImpl implements _Character {
     final List<String> tags = const [],
     this.avatarUrl,
     this.modelPreference,
+    this.isPublic = false,
+    this.isMine = false,
     required this.createdAt,
     required this.updatedAt,
   }) : _tags = tags;
@@ -340,13 +368,19 @@ class _$CharacterImpl implements _Character {
   @override
   final String? modelPreference;
   @override
+  @JsonKey()
+  final bool isPublic;
+  @override
+  @JsonKey()
+  final bool isMine;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
 
   @override
   String toString() {
-    return 'Character(id: $id, userId: $userId, name: $name, personality: $personality, speechStyle: $speechStyle, backstory: $backstory, scenario: $scenario, firstMessage: $firstMessage, exampleDialogue: $exampleDialogue, tags: $tags, avatarUrl: $avatarUrl, modelPreference: $modelPreference, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Character(id: $id, userId: $userId, name: $name, personality: $personality, speechStyle: $speechStyle, backstory: $backstory, scenario: $scenario, firstMessage: $firstMessage, exampleDialogue: $exampleDialogue, tags: $tags, avatarUrl: $avatarUrl, modelPreference: $modelPreference, isPublic: $isPublic, isMine: $isMine, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -374,6 +408,9 @@ class _$CharacterImpl implements _Character {
                 other.avatarUrl == avatarUrl) &&
             (identical(other.modelPreference, modelPreference) ||
                 other.modelPreference == modelPreference) &&
+            (identical(other.isPublic, isPublic) ||
+                other.isPublic == isPublic) &&
+            (identical(other.isMine, isMine) || other.isMine == isMine) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -396,6 +433,8 @@ class _$CharacterImpl implements _Character {
     const DeepCollectionEquality().hash(_tags),
     avatarUrl,
     modelPreference,
+    isPublic,
+    isMine,
     createdAt,
     updatedAt,
   );
@@ -428,6 +467,8 @@ abstract class _Character implements Character {
     final List<String> tags,
     final String? avatarUrl,
     final String? modelPreference,
+    final bool isPublic,
+    final bool isMine,
     required final DateTime createdAt,
     required final DateTime updatedAt,
   }) = _$CharacterImpl;
@@ -460,6 +501,10 @@ abstract class _Character implements Character {
   @override
   String? get modelPreference;
   @override
+  bool get isPublic;
+  @override
+  bool get isMine;
+  @override
   DateTime get createdAt;
   @override
   DateTime get updatedAt;
@@ -488,6 +533,7 @@ mixin _$CharacterCreate {
   List<String> get tags => throw _privateConstructorUsedError;
   String? get avatarUrl => throw _privateConstructorUsedError;
   String? get modelPreference => throw _privateConstructorUsedError;
+  bool get isPublic => throw _privateConstructorUsedError;
 
   /// Serializes this CharacterCreate to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -517,6 +563,7 @@ abstract class $CharacterCreateCopyWith<$Res> {
     List<String> tags,
     String? avatarUrl,
     String? modelPreference,
+    bool isPublic,
   });
 }
 
@@ -545,6 +592,7 @@ class _$CharacterCreateCopyWithImpl<$Res, $Val extends CharacterCreate>
     Object? tags = null,
     Object? avatarUrl = freezed,
     Object? modelPreference = freezed,
+    Object? isPublic = null,
   }) {
     return _then(
       _value.copyWith(
@@ -588,6 +636,10 @@ class _$CharacterCreateCopyWithImpl<$Res, $Val extends CharacterCreate>
                 ? _value.modelPreference
                 : modelPreference // ignore: cast_nullable_to_non_nullable
                       as String?,
+            isPublic: null == isPublic
+                ? _value.isPublic
+                : isPublic // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -614,6 +666,7 @@ abstract class _$$CharacterCreateImplCopyWith<$Res>
     List<String> tags,
     String? avatarUrl,
     String? modelPreference,
+    bool isPublic,
   });
 }
 
@@ -641,6 +694,7 @@ class __$$CharacterCreateImplCopyWithImpl<$Res>
     Object? tags = null,
     Object? avatarUrl = freezed,
     Object? modelPreference = freezed,
+    Object? isPublic = null,
   }) {
     return _then(
       _$CharacterCreateImpl(
@@ -684,6 +738,10 @@ class __$$CharacterCreateImplCopyWithImpl<$Res>
             ? _value.modelPreference
             : modelPreference // ignore: cast_nullable_to_non_nullable
                   as String?,
+        isPublic: null == isPublic
+            ? _value.isPublic
+            : isPublic // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -703,6 +761,7 @@ class _$CharacterCreateImpl implements _CharacterCreate {
     final List<String> tags = const [],
     this.avatarUrl,
     this.modelPreference,
+    this.isPublic = false,
   }) : _tags = tags;
 
   factory _$CharacterCreateImpl.fromJson(Map<String, dynamic> json) =>
@@ -738,10 +797,13 @@ class _$CharacterCreateImpl implements _CharacterCreate {
   final String? avatarUrl;
   @override
   final String? modelPreference;
+  @override
+  @JsonKey()
+  final bool isPublic;
 
   @override
   String toString() {
-    return 'CharacterCreate(name: $name, personality: $personality, speechStyle: $speechStyle, backstory: $backstory, scenario: $scenario, firstMessage: $firstMessage, exampleDialogue: $exampleDialogue, tags: $tags, avatarUrl: $avatarUrl, modelPreference: $modelPreference)';
+    return 'CharacterCreate(name: $name, personality: $personality, speechStyle: $speechStyle, backstory: $backstory, scenario: $scenario, firstMessage: $firstMessage, exampleDialogue: $exampleDialogue, tags: $tags, avatarUrl: $avatarUrl, modelPreference: $modelPreference, isPublic: $isPublic)';
   }
 
   @override
@@ -766,7 +828,9 @@ class _$CharacterCreateImpl implements _CharacterCreate {
             (identical(other.avatarUrl, avatarUrl) ||
                 other.avatarUrl == avatarUrl) &&
             (identical(other.modelPreference, modelPreference) ||
-                other.modelPreference == modelPreference));
+                other.modelPreference == modelPreference) &&
+            (identical(other.isPublic, isPublic) ||
+                other.isPublic == isPublic));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -783,6 +847,7 @@ class _$CharacterCreateImpl implements _CharacterCreate {
     const DeepCollectionEquality().hash(_tags),
     avatarUrl,
     modelPreference,
+    isPublic,
   );
 
   /// Create a copy of CharacterCreate
@@ -814,6 +879,7 @@ abstract class _CharacterCreate implements CharacterCreate {
     final List<String> tags,
     final String? avatarUrl,
     final String? modelPreference,
+    final bool isPublic,
   }) = _$CharacterCreateImpl;
 
   factory _CharacterCreate.fromJson(Map<String, dynamic> json) =
@@ -839,6 +905,8 @@ abstract class _CharacterCreate implements CharacterCreate {
   String? get avatarUrl;
   @override
   String? get modelPreference;
+  @override
+  bool get isPublic;
 
   /// Create a copy of CharacterCreate
   /// with the given fields replaced by the non-null parameter values.

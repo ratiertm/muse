@@ -53,6 +53,9 @@ Generate a briefing that:
 4. Does NOT reveal information they shouldn't know
 5. Is written in second-person ("You know...", "You feel...")
 6. Is concise (2-4 paragraphs)
+7. Start with a short [narration] line describing the scene/atmosphere (e.g. "[차가운 바람이 불어오는 폐허의 거리. 긴장감이 감돈다.]")
+   - This narration will be shown to the user as scene-setting
+   - Write it in Korean, in brackets
 
 Briefing:"""
 
@@ -121,11 +124,12 @@ Your role is to decide which character(s) should respond to the user's message b
 4. Natural conversation flow
 
 Key principles:
-- Characters should only respond if they have relevant knowledge or reason to speak
+- When the user greets everyone or addresses the group, ALL characters should respond
 - If a secret or unknown fact is mentioned, only characters who know it should react
 - Multiple characters can respond to the same message (naturally)
-- Some messages may only warrant 1 response, others may prompt multiple characters
+- Default to INCLUDING more characters rather than fewer — this is a group chat, everyone is present
 - Consider personality - some characters are more talkative, others more reserved
+- When in doubt, have at least 2 characters respond
 """
 
 # Template for deciding which characters respond next

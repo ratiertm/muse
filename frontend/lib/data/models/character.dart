@@ -18,6 +18,8 @@ class Character with _$Character {
     @Default([]) List<String> tags,
     String? avatarUrl,
     String? modelPreference,
+    @Default(false) bool isPublic,
+    @Default(false) bool isMine,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _Character;
@@ -39,6 +41,7 @@ class CharacterCreate with _$CharacterCreate {
     @Default([]) List<String> tags,
     String? avatarUrl,
     String? modelPreference,
+    @Default(false) bool isPublic,
   }) = _CharacterCreate;
 
   factory CharacterCreate.fromJson(Map<String, dynamic> json) =>

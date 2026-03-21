@@ -1,7 +1,7 @@
 """Character model"""
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
+from sqlalchemy import String, Text, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
@@ -32,6 +32,7 @@ class Character(Base):
     example_dialogue: Mapped[str] = mapped_column(Text, nullable=False)
     tags: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     model_preference: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
