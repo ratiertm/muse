@@ -118,6 +118,7 @@ flutter build apk --release --dart-define=API_URL=http://158.180.83.142:8000
 - ADR-005: Oracle Cloud 1GB 배포 전략
 - ADR-006: 시나리오 바텀시트 인라인 채팅 생성
 - ADR-007: 대화 목록 캐릭터별 그룹핑
+- ADR-008: 캐릭터 말투 충실도 (speech_style + example_dialogue)
 
 ## Retrospectives
 Phase 완료 시 반드시 `docs/retrospectives/`에 회고 기록. 템플릿: `docs/templates/RETROSPECTIVE.md`

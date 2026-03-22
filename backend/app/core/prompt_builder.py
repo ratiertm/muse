@@ -60,6 +60,8 @@ ABSOLUTE RULES:
         
         return "\n".join(sections)
     
+    # WHY: 캐릭터 붕괴 방지 — DB의 example_dialogue로 원작 말버릇(다뜨바요, 시시시 등)을 LLM에 전달
+    # SEE: docs/decisions/008-character-speech-fidelity.md
     @staticmethod
     def build_example_dialogue(character: Character) -> str:
         """Build example dialogue section"""
