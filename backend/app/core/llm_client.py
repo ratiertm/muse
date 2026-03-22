@@ -17,6 +17,8 @@ litellm.drop_params = True
 litellm.set_verbose = settings.DEBUG
 
 
+# WHY: API 키 비용 없이 무료로 LLM 사용. CLI fork 오버헤드 있지만 가족 2명 사용엔 충분
+# SEE: docs/decisions/002-claude-cli-over-api.md
 class ClaudeCLIClient:
     """LLM client that routes calls through 'claude -p' (OAuth headless).
     No API keys needed — uses Claude Code's OAuth session.

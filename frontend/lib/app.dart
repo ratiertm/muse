@@ -4,7 +4,7 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/screens/settings/settings_screen.dart';
 
-// Disable stretch overscroll effect globally (use glow instead)
+// WHY: Material 3 스트레치 효과가 카드/리스트를 늘어뜨려 UX 저해 → Glow로 교체
 class _NoStretchScrollBehavior extends MaterialScrollBehavior {
   @override
   Widget buildOverscrollIndicator(

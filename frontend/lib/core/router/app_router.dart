@@ -40,7 +40,8 @@ final GoRouter appRouter = GoRouter(
       },
     ),
 
-    // === Main App (BottomNav Shell) ===
+    // WHY: BottomNav 4탭 — Drawer보다 발견성 높고 한손 조작 용이
+    // SEE: docs/decisions/001-bottom-nav-over-drawer.md
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return MainShell(navigationShell: navigationShell);

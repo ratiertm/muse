@@ -77,6 +77,8 @@ class ScenarioListScreen extends ConsumerWidget {
     }
   }
 
+  // WHY: 별도 화면 대신 바텀시트에서 상세+채팅생성을 통합 → 동선 2탭으로 단축
+  // SEE: docs/decisions/006-scenario-inline-chat-creation.md
   void _showScenarioDetail(BuildContext context, WidgetRef ref, dynamic scenario) {
     showModalBottomSheet(
       context: context,

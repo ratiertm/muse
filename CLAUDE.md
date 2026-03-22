@@ -109,5 +109,43 @@ flutter build apk --release --dart-define=API_URL=http://158.180.83.142:8000
 - 시나리오: 13개
 - 페르소나: 3개
 
+## Architecture Decision Records
+의사결정 맥락은 `docs/decisions/`에 기록. 새 세션에서 "왜 이렇게 했는지" 파악 시 참조.
+- ADR-001: Drawer → BottomNav 4탭 전환
+- ADR-002: Claude CLI OAuth 사용 (API 키 대신)
+- ADR-003: 로컬 아바타 저장 (CDN 대신)
+- ADR-004: God Agent 그룹 채팅 패턴
+- ADR-005: Oracle Cloud 1GB 배포 전략
+- ADR-006: 시나리오 바텀시트 인라인 채팅 생성
+- ADR-007: 대화 목록 캐릭터별 그룹핑
+
+## Retrospectives
+Phase 완료 시 반드시 `docs/retrospectives/`에 회고 기록. 템플릿: `docs/templates/RETROSPECTIVE.md`
+- **ui-refactor** (2026-03-22): [회고](docs/retrospectives/ui-refactor-2026-03-22.md)
+  - 핵심 교훈: 이미지 검색은 영문 필수, release APK는 실네트워크 테스트, Material 3 기본값 확인
+
+## Development Lifecycle Rules
+아래 규칙은 GSD/PDCA/ADR/회고 스킬 간 연동을 보장한다. 재작업을 줄이기 위한 체크포인트.
+
+### Phase 완료 시 (필수)
+1. `/gsd:verify-work` → 구현 검증
+2. `/gsd-retrospective` → 회고 작성 (배운 것 + 실수 + 교훈)
+3. ADR 누락 체크 → 회고에서 발견된 미기록 결정은 `/adr`로 생성
+4. CLAUDE.md 업데이트 → ADR 목록, 회고 링크, PDCA History 추가
+
+### 결정 시점 (자동)
+- "A 대신 B로 하자" 같은 트레이드오프 → `/adr` 자동 트리거
+- ADR 생성 → 코드에 WHY+SEE 주석 자동 삽입
+
+### Phase 시작 전 (필수)
+- 이전 Phase 회고의 "Lessons for Next Phase" 확인
+- 관련 ADR 읽기 → 같은 실수 반복 방지
+
+### PDCA 연동
+- Plan → GSD plan-phase와 동기화
+- Do → GSD execute-phase
+- Check → `/gsd:verify-work` + `/pdca analyze`
+- Act → gap 있으면 수정, 완료면 → 회고 + ADR 체크
+
 ## PDCA History
-- **ui-refactor** (2026-03-21): Drawer→BottomNav 4탭, GoRouter StatefulShellRoute, 시나리오 카드UI+인라인 채팅생성, 대화 그룹핑, 공용/개인 구분, 아바타 로컬 저장, Oracle Cloud 배포
+- **ui-refactor** (2026-03-21~22): Drawer→BottomNav 4탭, GoRouter StatefulShellRoute, 시나리오 카드UI+인라인 채팅생성, 대화 그룹핑, 공용/개인 구분, 아바타 로컬 저장, Oracle Cloud 배포

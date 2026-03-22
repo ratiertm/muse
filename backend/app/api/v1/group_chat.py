@@ -215,7 +215,8 @@ async def send_group_message(
         f"### {char.name}\n"
         f"- 성격: {char.personality}\n"
         f"- 말투: {char.speech_style}\n"
-        f"- 배경: {char.backstory[:200] if char.backstory else '없음'}"
+        f"- 배경: {char.backstory[:200] if char.backstory else '없음'}\n"
+        f"- 예시 대사:\n{char.example_dialogue[:300] if char.example_dialogue else '없음'}"
         for char in participants
     ])
 
@@ -249,6 +250,8 @@ async def send_group_message(
         for msg in history_messages[-10:]
     ])
 
+    # WHY: Haiku가 먼저 "누가 말할지" 판단 → Sonnet이 캐릭터별 응답 생성. 자연스러운 그룹 대화
+    # SEE: docs/decisions/004-god-agent-group-chat.md
     combined_prompt = f"""You are a God Agent — an omniscient narrator orchestrating a group roleplay.
 
 ## 시나리오: {scenario.name}

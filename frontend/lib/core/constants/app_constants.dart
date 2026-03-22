@@ -36,7 +36,8 @@ class AppConstants {
     {'name': '딸', 'avatar': '👧', 'description': '대학생'},
   ];
   
-  /// Convert relative avatar URL to full URL
+  /// WHY: MAL CDN URL이 만료되므로 서버 로컬에 저장한 이미지를 절대URL로 변환
+  /// SEE: docs/decisions/003-local-avatar-storage.md
   static String? resolveAvatarUrl(String? url) {
     if (url == null || url.isEmpty) return null;
     if (url.startsWith('http')) return url;

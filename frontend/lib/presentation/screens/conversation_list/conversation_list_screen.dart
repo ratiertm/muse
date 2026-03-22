@@ -76,7 +76,8 @@ class ConversationListScreen extends ConsumerWidget {
             );
           }
 
-          // Separate group and 1:1 conversations
+          // WHY: 같은 캐릭터 1:1 대화가 중복 표시되는 문제 → 캐릭터별 최신 1건만 표시
+          // SEE: docs/decisions/007-conversation-grouping.md
           final groupChats = conversations.where((c) => c.isGroup).toList();
           final soloChats = conversations.where((c) => !c.isGroup).toList();
 
