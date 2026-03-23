@@ -34,6 +34,7 @@ class AppConstants {
   static const profiles = [
     {'name': 'MB', 'avatar': '👨', 'description': '아빠'},
     {'name': '딸', 'avatar': '👧', 'description': '대학생'},
+    {'name': 'EM', 'avatar': '👩', 'description': '엄마'},
   ];
   
   /// WHY: MAL CDN URL이 만료되므로 서버 로컬에 저장한 이미지를 절대URL로 변환
