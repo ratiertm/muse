@@ -20,6 +20,7 @@ from app.core.exceptions import (
 )
 from app.core.logging_config import setup_logging, get_logger
 from app.db.database import engine
+from app.discord_notify import notify_500_error
 
 # Setup logging
 setup_logging(log_level="INFO" if not settings.DEBUG else "DEBUG")
@@ -73,7 +74,11 @@ async def log_requests(request: Request, call_next):
     
     # Calculate duration
     duration = time.time() - start_time
-    
+
+    # Discord alert on 500 errors
+    if response.status_code >= 500:
+        notify_500_error(request.method, str(request.url.path), f"Status {response.status_code}")
+
     # Log request
     logger.info(
         "Request processed",
